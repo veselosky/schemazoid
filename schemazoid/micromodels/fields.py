@@ -1,28 +1,33 @@
 import datetime
 import PySO8601
 
+# * Django fields contain no instance data, only validation.
+# * Django fields contain a reference to their model and their own name within
+#   the model.
+# * Django fields use a contribute_to_class method to install themselves in a
+#   model and set their model and name attributes.
 
+# TODO Add validators to BaseField to lessen need to sublcass.
+# TODO Add required and null validators as keyword args.
+# TODO Implement a NotSet value to distinguish between a NULL value that
+#      should be serialized and a field that should not be serialized.
 class BaseField(object):
     """Base class for all field types.
-
-    The ``source`` parameter sets the key that will be retrieved from the source
-    data. If ``source`` is not specified, the field instance will use its own
-    name as the key to retrieve the value from the source data.
-
     """
     def __init__(self, source=None):
         self.source = source
 
+    # FIXME No instance data on the field, please!
     def populate(self, data):
         """Set the value or values wrapped by this field"""
 
         self.data = data
 
+    # FIXME No instance data on the field, please! Add data arg.
     def to_python(self):
         '''After being populated, this method casts the source data into a
         Python object. The default behavior is to simply return the source
         value. Subclasses should override this method.
-
         '''
         return self.data
 
@@ -77,6 +82,7 @@ class FloatField(BaseField):
         return float(self.data)
 
 
+# FIXME Boolean to_python gives unexpected results. Use Django's logic instead.
 class BooleanField(BaseField):
     """Field to represent a boolean"""
 
@@ -92,6 +98,8 @@ class BooleanField(BaseField):
         return bool(self.data)
 
 
+# FIXME Eliminate dependency on PySO8601, it is not Python 3 compatible.
+# Recommend Dateutil 2.2.
 class DateTimeField(BaseField):
     """Field to represent a datetime
 
@@ -99,8 +107,8 @@ class DateTimeField(BaseField):
     used in the construction of the :class:`datetime.datetime` object.
 
     The ``serial_format`` parameter is a strftime formatted string for
-    serialization. If ``serial_format`` isn't specified, an ISO formatted string
-    will be returned by :meth:`~micromodels.DateTimeField.to_serial`.
+    serialization. If ``serial_format`` isn't specified, an ISO formatted
+    string will be returned by :meth:`~micromodels.DateTimeField.to_serial`.
 
     """
     def __init__(self, format=None, serial_format=None, **kwargs):
@@ -128,6 +136,7 @@ class DateTimeField(BaseField):
             return time_obj.isoformat()
         return time_obj.strftime(self.serial_format)
 
+
 class DateField(DateTimeField):
     """Field to represent a :mod:`datetime.date`"""
 
@@ -135,7 +144,7 @@ class DateField(DateTimeField):
         # don't parse data that is already native
         if isinstance(self.data, datetime.date):
             return self.data
-        
+
         dt = super(DateField, self).to_python()
         return dt.date()
 
@@ -146,9 +155,11 @@ class TimeField(DateTimeField):
     def to_python(self):
         # don't parse data that is already native
         if isinstance(self.data, datetime.datetime):
+            # FIXME TimeField should return Time not Datetime!
             return self.data
         elif self.format is None:
             # parse as iso8601
+            # FIXME Eliminate dependency on PySO8601, not Py3 compatible.
             return PySO8601.parse_time(self.data).time()
         else:
             return datetime.datetime.strptime(self.data, self.format).time()

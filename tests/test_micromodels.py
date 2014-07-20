@@ -4,6 +4,21 @@ import unittest
 from schemazoid import micromodels
 from schemazoid.micromodels.models import json
 
+# TEST Runs under Python 3.
+# TEST Model inherits fields from parent.
+# TEST Model has private copy of Field instance, not shared with Class.
+# TEST Move from_kwargs functionality to base constructor.
+# TEST Remove source attr from fields, work django-style.
+# TEST Consistent interface for BaseField (to_python vs to_serial args).
+# TEST BooleanField works like Django's. Strings should not be false.
+# TEST TimeField should return a Time when handed a Datetime.
+# TEST Add validators to BaseField
+# TEST Add required and null validation args to BaseField.
+# TEST Implement NotSet value for BaseField.
+# TEST Model-level validation.
+# TEST Remove is_json arg from from_dict.
+# TEST Remove is_json arg from set_data.
+# TEST Add keymap arg to from_dict.
 
 class ClassCreationTestCase(unittest.TestCase):
 
