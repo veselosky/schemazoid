@@ -1,0 +1,3 @@
+include LICENSE NOTICE tox.ini
+recursive-include docs tests
+prune docs/_build
