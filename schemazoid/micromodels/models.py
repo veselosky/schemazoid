@@ -52,9 +52,13 @@ class Model(object):
     If the instance doesn't have a field matching the key, then the key and
     value are just set on the instance like any other assignment in Python.
     """
-
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super(Model, self).__init__()
+        # Since we override __setattr__ to search in _extra, when we set it
+        # we call super directly to bypass our implementation.
         super(Model, self).__setattr__('_extra', {})
+        if kwargs:
+            self.set_data(kwargs)
 
     # FIXME Remove the "is_json" argument from the "from_dict".
     # JSON is obviously not a dict. Parse it yourself.
@@ -68,17 +72,6 @@ class Model(object):
         '''
         instance = cls()
         instance.set_data(D, is_json=is_json)
-        return instance
-
-    # FIXME Constructor "from_kwargs" should just be __init__. Merge them.
-    @classmethod
-    def from_kwargs(cls, **kwargs):
-        '''This constructor for :class:`Model` only takes keywork arguments.
-        Each key and value pair that represents a field in the :class:`Model`
-        is set on the new :class:`Model` instance.
-        '''
-        instance = cls()
-        instance.set_data(kwargs)
         return instance
 
     # FIXME Remove the "is_json" argument to "set_data".

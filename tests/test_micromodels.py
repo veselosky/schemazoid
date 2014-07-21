@@ -4,7 +4,6 @@ from datetime import date
 from schemazoid import micromodels as m
 from schemazoid.micromodels.models import json
 
-# TEST Move from_kwargs functionality to base constructor.
 # TEST Remove source attr from fields, work django-style.
 # TEST Consistent interface for BaseField (to_python vs to_serial args).
 # TEST BooleanField works like Django's. Strings should not be false.
@@ -23,7 +22,7 @@ class ClassCreationTestCase(unittest.TestCase):
     def setUp(self):
         class SimpleModel(m.Model):
             name = m.CharField()
-            field_with_source = m.CharField(source='foo')
+            other = m.CharField()
         self.model_class = SimpleModel
         self.instance = SimpleModel()
 
@@ -39,15 +38,24 @@ class ClassCreationTestCase(unittest.TestCase):
         """Model property should be of correct type"""
         self.assertTrue(isinstance(self.instance._fields['name'], m.CharField))
 
-    def test_field_source_not_set(self):
-        """Field without a custom source should have a source of None"""
-        self.assertEqual(self.instance._fields['name'].source, None)
 
-    def test_field_source_set(self):
-        """Field with custom source specificied should have source property
-        set correctly"""
-        self.assertEqual(self.instance._fields['field_with_source'].source,
-                         'foo')
+class ClassCreationFromKwargsTestCase(unittest.TestCase):
+
+    def setUp(self):
+        class SimpleModel(m.Model):
+            name = m.CharField()
+            other = m.CharField()
+        self.model_class = SimpleModel
+        self.instance = SimpleModel(name="The name", other="The other")
+
+    def test_class_created(self):
+        """Model instance should be of type SimpleModel"""
+        self.assertTrue(isinstance(self.instance, self.model_class))
+
+    def test_fields_set(self):
+        """Model instance should have a property called _fields"""
+        self.assertEqual(self.instance.name, 'The name')
+        self.assertEqual(self.instance.other, 'The other')
 
 
 class InstanceTestCase(unittest.TestCase):
