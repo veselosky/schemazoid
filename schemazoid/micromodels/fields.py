@@ -163,7 +163,7 @@ class TimeField(DateTimeField):
             # as a time, place a parseable date in front of it.
             # See TimeFieldTestCase.test_iso8601_without_delimiters
             today = datetime.datetime.now().date().isoformat()
-            return parse_datetime(today+' at '+self.data).time()
+            return parse_datetime(today + ' at ' + self.data).time()
         else:
             return datetime.datetime.strptime(self.data, self.format).time()
 
@@ -186,22 +186,23 @@ class ModelField(WrappedObjectField):
     It takes a single required argument, which is the nested class.
     For example, given the following dictionary::
 
-        some_data = {
-            'first_item': 'Some value',
-            'second_item': {
-                'nested_item': 'Some nested value',
-            },
-        }
+        >>> some_data = {
+        ...     'first_item': 'Some value',
+        ...     'second_item': {
+        ...         'nested_item': 'Some nested value',
+        ...     },
+        ... }
 
     You could build the following classes
     (note that you have to define the inner nested models first)::
 
-        class MyNestedModel(micromodels.Model):
-            nested_item = micromodels.CharField()
+        >>> from schemazoid import micromodels
+        >>> class MyNestedModel(micromodels.Model):
+        ...     nested_item = micromodels.CharField()
 
-        class MyMainModel(micromodels.Model):
-            first_item = micromodels.CharField()
-            second_item = micromodels.ModelField(MyNestedModel)
+        >>> class MyMainModel(micromodels.Model):
+        ...     first_item = micromodels.CharField()
+        ...     second_item = micromodels.ModelField(MyNestedModel)
 
     Then you can access the data as follows::
 
@@ -238,19 +239,20 @@ class ModelCollectionField(WrappedObjectField):
     nested class that each item in the list should be converted to.
     For example::
 
-        some_data = {
-            'list': [
-                {'value': 'First value'},
-                {'value': 'Second value'},
-                {'value': 'Third value'},
-            ]
-        }
+        >>> some_data = {
+        ...     'list': [
+        ...         {'value': 'First value'},
+        ...         {'value': 'Second value'},
+        ...         {'value': 'Third value'},
+        ...     ]
+        ... }
 
-        class MyNestedModel(micromodels.Model):
-            value = micromodels.CharField()
+        >>> from schemazoid import micromodels
+        >>> class MyNestedModel(micromodels.Model):
+        ...     value = micromodels.CharField()
 
-        class MyMainModel(micromodels.Model):
-            list = micromodels.ModelCollectionField(MyNestedModel)
+        >>> class MyMainModel(micromodels.Model):
+        ...     list = micromodels.ModelCollectionField(MyNestedModel)
 
         >>> m = MyMainModel(some_data)
         >>> len(m.list)
@@ -284,19 +286,17 @@ class FieldCollectionField(BaseField):
 
     Here are some examples::
 
-        data = {
-                    'legal_name': 'John Smith',
-                    'aliases': ['Larry', 'Mo', 'Curly']
-        }
+        >>> from schemazoid.micromodels import Model
+        >>> data = {
+        ...     'legal_name': 'John Smith',
+        ...     'aliases': ['Larry', 'Mo', 'Curly']
+        ... }
 
-        class Person(Model):
-            legal_name = CharField()
-            aliases = FieldCollectionField(CharField())
+        >>> class Person(Model):
+        ...     legal_name = CharField()
+        ...     aliases = FieldCollectionField(CharField())
 
-        p = Person(data)
-
-    And now a quick REPL session::
-
+        >>> p = Person(data)
         >>> p.legal_name
         u'John Smith'
         >>> p.aliases
@@ -308,20 +308,20 @@ class FieldCollectionField(BaseField):
 
     Here is a bit more complicated example involving args and kwargs::
 
-        data = {
-                    'name': 'San Andreas',
-                    'dates': ['1906-05-11', '1948-11-02', '1970-01-01']
-        }
+        >>> data = {
+        ...     'name': 'San Andreas',
+        ...     'dates': ['1906-05-11', '1948-11-02', '1970-01-01']
+        ... }
 
-        class FaultLine(Model):
-            name = CharField()
-            earthquake_dates = FieldCollectionField(DateField('%Y-%m-%d',
-                                                    serial_format='%m-%d-%Y'),
-                                                    source='dates')
+        >>> class FaultLine(Model):
+        ...     name = CharField()
+        ...     earthquake_dates = FieldCollectionField(DateField('%Y-%m-%d',
+        ...                                             serial_format='%m-%d-%Y'),
+        ...                                             source='dates')
 
-        f = FaultLine(data)
+        >>> f = FaultLine(data)
 
-    Notice that source is passed to to the
+    Notice that source is passed to the
     :class:`~micromodels.FieldCollectionField`, not the
     :class:`~micromodels.DateField`.
 
