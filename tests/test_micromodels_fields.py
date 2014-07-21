@@ -79,24 +79,27 @@ class BooleanFieldTestCase(unittest.TestCase):
         self.assertEqual(self.field.to_python(), False)
 
     def test_string_conversion(self):
-        """BooleanField should convert the string "True" (case insensitive) to
-        True, all other values to False"""
+        """BooleanField uses Python's boolean rules for non-boolean values,
+        with one exception: a string containing "false" (case insensitive)
+        or "0" will evaluate False."""
         self.field.populate('true')
         self.assertEqual(self.field.to_python(), True)
         self.field.populate('True')
         self.assertEqual(self.field.to_python(), True)
         self.field.populate('False')
         self.assertEqual(self.field.to_python(), False)
-        self.field.populate('asdfasfasfd')
+        self.field.populate('false strings are not false')
+        self.assertEqual(self.field.to_python(), True)
+        self.field.populate('0')
         self.assertEqual(self.field.to_python(), False)
 
     def test_integer_conversion(self):
-        """BooleanField should convert values <= 0 to False, all other integers
+        """BooleanField should convert 0 to False, all other integers
         to True"""
         self.field.populate(0)
         self.assertEqual(self.field.to_python(), False)
         self.field.populate(-100)
-        self.assertEqual(self.field.to_python(), False)
+        self.assertEqual(self.field.to_python(), True)
         self.field.populate(100)
         self.assertEqual(self.field.to_python(), True)
 

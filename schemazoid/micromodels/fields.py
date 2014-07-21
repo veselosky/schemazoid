@@ -87,17 +87,17 @@ class FloatField(BaseField):
 
 # FIXME Boolean to_python gives unexpected results. Use Django's logic instead.
 class BooleanField(BaseField):
-    """Field to represent a boolean"""
+    """Field to represent a boolean.
+
+    BooleanField uses Python's boolean rules for non-boolean values,
+    with one exception: a string containing "false" (case insensitive)
+    or "0" will evaluate False."""
 
     def to_python(self):
-        """The string ``'True'`` (case insensitive) will be converted
-        to ``True``, as will any positive integers.
-
-        """
         if isinstance(self.data, six.string_types):
-            return self.data.strip().lower() == 'true'
-        if isinstance(self.data, int):
-            return self.data > 0
+            norm = self.data.strip().lower()
+            if norm == 'false' or norm == '0':
+                return False
         return bool(self.data)
 
 

@@ -5,7 +5,6 @@ from schemazoid import micromodels as m
 from schemazoid.micromodels.models import json
 
 # TEST Consistent interface for BaseField (to_python vs to_serial args).
-# TEST BooleanField works like Django's. Strings should not be false.
 # TEST Add validators to BaseField
 # TEST Add required and null validation args to BaseField.
 # TEST Implement NotSet value for BaseField.
@@ -13,6 +12,7 @@ from schemazoid.micromodels.models import json
 # TEST Remove is_json arg from from_dict.
 # TEST Remove is_json arg from set_data.
 # TEST Add keymap arg to from_dict.
+# TODO Sort out the related_name question.
 
 
 class ClassCreationTestCase(unittest.TestCase):
