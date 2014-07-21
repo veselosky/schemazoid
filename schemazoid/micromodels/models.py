@@ -13,7 +13,7 @@ class MetaModel(type):
     '''
     def __new__(cls, name, bases, attrs):
         fields = {}
-        for base in bases[::-1]:  # Is this the correct inheritence order?
+        for base in bases[::-1]:
             if hasattr(base, '_clsfields'):
                 fields.update(base._clsfields)
 
