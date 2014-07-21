@@ -75,15 +75,12 @@ class Model(object):
         return instance
 
     # FIXME Remove the "is_json" argument to "set_data".
-    # FIXME Remove the "source" attribute for fields. Limits mapping to a
-    # single input. Instead provide separate keymaps for different inputs.
     def set_data(self, data, is_json=False):
         if is_json:
             data = json.loads(data)
         for name, field in six.iteritems(self._clsfields):
-            key = field.source or name
-            if key in data:
-                setattr(self, name, data.get(key))
+            if name in data:
+                setattr(self, name, data[name])
 
     def __setattr__(self, key, value):
         if key in self._fields:

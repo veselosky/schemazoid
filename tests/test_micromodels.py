@@ -4,7 +4,6 @@ from datetime import date
 from schemazoid import micromodels as m
 from schemazoid.micromodels.models import json
 
-# TEST Remove source attr from fields, work django-style.
 # TEST Consistent interface for BaseField (to_python vs to_serial args).
 # TEST BooleanField works like Django's. Strings should not be false.
 # TEST TimeField should return a Time when handed a Datetime.
@@ -71,16 +70,6 @@ class InstanceTestCase(unittest.TestCase):
 
         self.assertEqual(instance.first, data['first'])
         self.assertEqual(instance.second, data['second'])
-
-    # TODO Remove "custom_source" test and feature
-    def test_custom_data_source(self):
-        class CustomSourceModel(m.Model):
-            first = m.CharField(source='custom_source')
-
-        data = {'custom_source': 'somevalue'}
-        instance = CustomSourceModel.from_dict(data)
-
-        self.assertEqual(instance.first, data['custom_source'])
 
 
 class ModelTestCase(unittest.TestCase):

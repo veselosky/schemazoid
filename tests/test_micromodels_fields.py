@@ -1,27 +1,13 @@
 import unittest
 from datetime import date, time, datetime
 
-from schemazoid import micromodels
-
-
-class BaseFieldTestCase(unittest.TestCase):
-
-    def test_field_without_provided_source(self):
-        """If no source parameter is provided, the field's source attribute should be None"""
-        field = micromodels.fields.BaseField()
-        self.assertTrue(hasattr(field, 'source'))
-        self.assertTrue(field.source is None)
-
-    def test_field_with_provided_source(self):
-        """If a source parameter is provided, the field's source attribute should be set to the value of this parameter"""
-        field = micromodels.fields.BaseField(source='customsource')
-        self.assertEqual(field.source, 'customsource')
+from schemazoid import micromodels as m
 
 
 class CharFieldTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.field = micromodels.CharField()
+        self.field = m.CharField()
 
     def test_string_conversion(self):
         self.field.populate('somestring')
@@ -36,7 +22,7 @@ class CharFieldTestCase(unittest.TestCase):
 class IntegerFieldTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.field = micromodels.IntegerField()
+        self.field = m.IntegerField()
 
     def test_integer_conversion(self):
         self.field.populate(123)
@@ -59,7 +45,7 @@ class IntegerFieldTestCase(unittest.TestCase):
 class FloatFieldTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.field = micromodels.FloatField()
+        self.field = m.FloatField()
 
     def test_float_conversion(self):
         self.field.populate(123.4)
@@ -82,7 +68,7 @@ class FloatFieldTestCase(unittest.TestCase):
 class BooleanFieldTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.field = micromodels.BooleanField()
+        self.field = m.BooleanField()
 
     def test_true_conversion(self):
         self.field.populate(True)
@@ -93,7 +79,8 @@ class BooleanFieldTestCase(unittest.TestCase):
         self.assertEqual(self.field.to_python(), False)
 
     def test_string_conversion(self):
-        """BooleanField should convert the string "True" (case insensitive) to True, all other values to False"""
+        """BooleanField should convert the string "True" (case insensitive) to
+        True, all other values to False"""
         self.field.populate('true')
         self.assertEqual(self.field.to_python(), True)
         self.field.populate('True')
@@ -104,7 +91,8 @@ class BooleanFieldTestCase(unittest.TestCase):
         self.assertEqual(self.field.to_python(), False)
 
     def test_integer_conversion(self):
-        """BooleanField should convert values <= 0 to False, all other integers to True"""
+        """BooleanField should convert values <= 0 to False, all other integers
+        to True"""
         self.field.populate(0)
         self.assertEqual(self.field.to_python(), False)
         self.field.populate(-100)
@@ -118,7 +106,7 @@ class DateTimeFieldTestCase(unittest.TestCase):
     def setUp(self):
         self.format = "%a %b %d %H:%M:%S +0000 %Y"
         self.datetimestring = "Tue Mar 21 20:50:14 +0000 2006"
-        self.field = micromodels.DateTimeField(format=self.format)
+        self.field = m.DateTimeField(format=self.format)
 
     def test_format_conversion(self):
         self.field.populate(self.datetimestring)
@@ -129,13 +117,13 @@ class DateTimeFieldTestCase(unittest.TestCase):
     def test_iso8601_conversion(self):
         import pytz  # sigh dateutil.tz lib not portable py2-py3 as of 2.2
 
-        field = micromodels.DateTimeField()
+        field = m.DateTimeField()
         field.populate("2010-07-13T14:01:00Z")
         result = field.to_python()
         expected = datetime(2010, 7, 13, 14, 1, 0, tzinfo=pytz.utc)
         self.assertEqual(expected, result)
 
-        field = micromodels.DateTimeField()
+        field = m.DateTimeField()
         field.populate("2010-07-13T14:02:00-05:00")
         result = field.to_python()
         cdt = pytz.timezone("America/Chicago")  # DST, so -5 is central time
@@ -143,7 +131,7 @@ class DateTimeFieldTestCase(unittest.TestCase):
 
         self.assertEqual(expected, result)
 
-        field = micromodels.DateTimeField()
+        field = m.DateTimeField()
         field.populate("20100713T140200-05:00")
         result = field.to_python()
         expected = cdt.localize(datetime(2010, 7, 13, 14, 2, 0))
@@ -152,7 +140,7 @@ class DateTimeFieldTestCase(unittest.TestCase):
 
     def test_iso8601_to_serial(self):
 
-        field = micromodels.DateTimeField()
+        field = m.DateTimeField()
         field.populate("2010-07-13T14:01:00Z")
         native = field.to_python()
         expected = "2010-07-13T14:01:00+00:00"
@@ -160,7 +148,7 @@ class DateTimeFieldTestCase(unittest.TestCase):
 
         self.assertEqual(expected, result)
 
-        field = micromodels.DateTimeField()
+        field = m.DateTimeField()
         field.populate("2010-07-13T14:02:00-05:00")
         native = field.to_python()
         expected = "2010-07-13T14:02:00-05:00"
@@ -174,7 +162,7 @@ class DateFieldTestCase(unittest.TestCase):
     def setUp(self):
         self.format = "%Y-%m-%d"
         self.datestring = "2010-12-28"
-        self.field = micromodels.DateField(format=self.format)
+        self.field = m.DateField(format=self.format)
 
     def test_format_conversion(self):
         self.field.populate(self.datestring)
@@ -183,13 +171,13 @@ class DateFieldTestCase(unittest.TestCase):
         self.assertEqual(converted.strftime(self.format), self.datestring)
 
     def test_iso8601_conversion(self):
-        field = micromodels.DateField()
+        field = m.DateField()
         field.populate("2010-12-28")
         result = field.to_python()
         expected = date(2010, 12, 28)
         self.assertEqual(expected, result)
 
-        field = micromodels.DateField()
+        field = m.DateField()
         field.populate("20101228")
         result = field.to_python()
         expected = date(2010, 12, 28)
@@ -201,7 +189,7 @@ class TimeFieldTestCase(unittest.TestCase):
     def setUp(self):
         self.format = "%H:%M:%S"
         self.timestring = "09:33:30"
-        self.field = micromodels.TimeField(format=self.format)
+        self.field = m.TimeField(format=self.format)
 
     def test_format_conversion(self):
         self.field.populate(self.timestring)
@@ -210,14 +198,14 @@ class TimeFieldTestCase(unittest.TestCase):
         self.assertEqual(converted.strftime(self.format), self.timestring)
 
     def test_iso8601_conversion(self):
-        field = micromodels.TimeField()
+        field = m.TimeField()
         field.populate("09:33:30")
         result = field.to_python()
         expected = time(9, 33, 30)
         self.assertEqual(expected, result)
 
     def test_iso8601_without_delimiters(self):
-        field = micromodels.TimeField()
+        field = m.TimeField()
         field.populate("093331")
         result = field.to_python()
         expected = time(9, 33, 31)
@@ -227,11 +215,11 @@ class TimeFieldTestCase(unittest.TestCase):
 class ModelFieldTestCase(unittest.TestCase):
 
     def test_model_field_creation(self):
-        class IsASubModel(micromodels.Model):
-            first = micromodels.CharField()
+        class IsASubModel(m.Model):
+            first = m.CharField()
 
-        class HasAModelField(micromodels.Model):
-            first = micromodels.ModelField(IsASubModel)
+        class HasAModelField(m.Model):
+            first = m.ModelField(IsASubModel)
 
         data = {'first': {'first': 'somevalue'}}
         instance = HasAModelField.from_dict(data)
@@ -239,24 +227,24 @@ class ModelFieldTestCase(unittest.TestCase):
         self.assertEqual(instance.first.first, data['first']['first'])
 
     def test_model_field_to_serial(self):
-        class User(micromodels.Model):
-            name = micromodels.CharField()
+        class User(m.Model):
+            name = m.CharField()
 
-        class Post(micromodels.Model):
-            title = micromodels.CharField()
-            author = micromodels.ModelField(User)
+        class Post(m.Model):
+            title = m.CharField()
+            author = m.ModelField(User)
 
         data = {'title': 'Test Post', 'author': {'name': 'Eric Martin'}}
         post = Post.from_dict(data)
         self.assertEqual(post.to_dict(serial=True), data)
 
     def test_related_name(self):
-        class User(micromodels.Model):
-            name = micromodels.CharField()
+        class User(m.Model):
+            name = m.CharField()
 
-        class Post(micromodels.Model):
-            title = micromodels.CharField()
-            author = micromodels.ModelField(User, related_name="post")
+        class Post(m.Model):
+            title = m.CharField()
+            author = m.ModelField(User, related_name="post")
 
         data = {'title': 'Test Post', 'author': {'name': 'Eric Martin'}}
         post = Post.from_dict(data)
@@ -267,16 +255,16 @@ class ModelFieldTestCase(unittest.TestCase):
         class SomethingExceptional(Exception):
             pass
 
-        class User(micromodels.Model):
-            name = micromodels.CharField()
+        class User(m.Model):
+            name = m.CharField()
 
             @classmethod
             def from_dict(cls, *args, **kwargs):
                 raise SomethingExceptional("opps.")
 
-        class Post(micromodels.Model):
-            title = micromodels.CharField()
-            author = micromodels.ModelField(User)
+        class Post(m.Model):
+            title = m.CharField()
+            author = m.ModelField(User)
 
         data = {'title': 'Test Post', 'author': {'name': 'Eric Martin'}}
         self.assertRaises(SomethingExceptional, Post.from_dict,
@@ -286,11 +274,11 @@ class ModelFieldTestCase(unittest.TestCase):
 class ModelCollectionFieldTestCase(unittest.TestCase):
 
     def test_model_collection_field_creation(self):
-        class IsASubModel(micromodels.Model):
-            first = micromodels.CharField()
+        class IsASubModel(m.Model):
+            first = m.CharField()
 
-        class HasAModelCollectionField(micromodels.Model):
-            first = micromodels.ModelCollectionField(IsASubModel)
+        class HasAModelCollectionField(m.Model):
+            first = m.ModelCollectionField(IsASubModel)
 
         data = {'first': [{'first': 'somevalue'}, {'first': 'anothervalue'}]}
         instance = HasAModelCollectionField.from_dict(data)
@@ -301,23 +289,23 @@ class ModelCollectionFieldTestCase(unittest.TestCase):
         self.assertEqual(instance.first[1].first, data['first'][1]['first'])
 
     def test_model_collection_field_with_no_elements(self):
-        class IsASubModel(micromodels.Model):
-            first = micromodels.CharField()
+        class IsASubModel(m.Model):
+            first = m.CharField()
 
-        class HasAModelCollectionField(micromodels.Model):
-            first = micromodels.ModelCollectionField(IsASubModel)
+        class HasAModelCollectionField(m.Model):
+            first = m.ModelCollectionField(IsASubModel)
 
         data = {'first': []}
         instance = HasAModelCollectionField.from_dict(data)
         self.assertEqual(instance.first, [])
 
     def test_model_collection_to_serial(self):
-        class Post(micromodels.Model):
-            title = micromodels.CharField()
+        class Post(m.Model):
+            title = m.CharField()
 
-        class User(micromodels.Model):
-            name = micromodels.CharField()
-            posts = micromodels.ModelCollectionField(Post)
+        class User(m.Model):
+            name = m.CharField()
+            posts = m.ModelCollectionField(Post)
 
         data = {
             'name': 'Eric Martin',
@@ -332,12 +320,12 @@ class ModelCollectionFieldTestCase(unittest.TestCase):
         self.assertEqual(processed, data)
 
     def test_related_name(self):
-        class Post(micromodels.Model):
-            title = micromodels.CharField()
+        class Post(m.Model):
+            title = m.CharField()
 
-        class User(micromodels.Model):
-            name = micromodels.CharField()
-            posts = micromodels.ModelCollectionField(Post, related_name="author")
+        class User(m.Model):
+            name = m.CharField()
+            posts = m.ModelCollectionField(Post, related_name="author")
 
         data = {
             'name': 'Eric Martin',
@@ -358,8 +346,8 @@ class ModelCollectionFieldTestCase(unittest.TestCase):
 class FieldCollectionFieldTestCase(unittest.TestCase):
 
     def test_field_collection_field_creation(self):
-        class HasAFieldCollectionField(micromodels.Model):
-            first = micromodels.FieldCollectionField(micromodels.CharField())
+        class HasAFieldCollectionField(m.Model):
+            first = m.FieldCollectionField(m.CharField())
 
         data = {'first': ['one', 'two', 'three']}
         instance = HasAFieldCollectionField.from_dict(data)
@@ -369,18 +357,17 @@ class FieldCollectionFieldTestCase(unittest.TestCase):
             self.assertEqual(instance.first[index], value)
 
     def test_field_collection_field_to_serial(self):
-        class Person(micromodels.Model):
-            aliases = micromodels.FieldCollectionField(micromodels.CharField())
-            events = micromodels.FieldCollectionField(micromodels.DateField('%Y-%m-%d',
-                                        serial_format='%m-%d-%Y'), source='schedule')
+        class Person(m.Model):
+            aliases = m.FieldCollectionField(m.CharField())
+            events = m.FieldCollectionField(
+                m.DateField('%Y-%m-%d', serial_format='%m-%d-%Y'))
 
         data = {
             'aliases': ['Joe', 'John', 'Bob'],
-            'schedule': ['2011-01-30', '2011-04-01']
+            'events': ['2011-01-30', '2011-04-01']
         }
 
         p = Person.from_dict(data)
         serial = p.to_dict(serial=True)
         self.assertEqual(serial['aliases'], data['aliases'])
         self.assertEqual(serial['events'][0], '01-30-2011')
-

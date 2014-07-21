@@ -17,8 +17,8 @@ from dateutil.parser import parse as parse_datetime
 class BaseField(object):
     """Base class for all field types.
     """
-    def __init__(self, source=None):
-        self.source = source
+    def __init__(self, *args, **kwargs):
+        pass
 
     # FIXME No instance data on the field, please!
     def populate(self, data):
@@ -315,30 +315,24 @@ class FieldCollectionField(BaseField):
 
         >>> class FaultLine(Model):
         ...     name = CharField()
-        ...     earthquake_dates = FieldCollectionField(DateField('%Y-%m-%d',
-        ...                                             serial_format='%m-%d-%Y'),
-        ...                                             source='dates')
-
+        ...     dates = FieldCollectionField(
+        ...         DateField('%Y-%m-%d', serial_format='%m-%d-%Y'))
         >>> f = FaultLine(data)
-
-    Notice that source is passed to the
-    :class:`~micromodels.FieldCollectionField`, not the
-    :class:`~micromodels.DateField`.
 
     Let's check out the resulting :class:`~micromodels.Model` instance with the
     REPL::
 
         >>> f.name
         u'San Andreas'
-        >>> f.earthquake_dates
+        >>> f.dates
         [datetime.date(1906, 5, 11), datetime.date(1948, 11, 2), datetime.date(1970, 1, 1)]
         >>> f.to_dict()
-        {'earthquake_dates': [datetime.date(1906, 5, 11), datetime.date(1948, 11, 2), datetime.date(1970, 1, 1)],
+        {'dates': [datetime.date(1906, 5, 11), datetime.date(1948, 11, 2), datetime.date(1970, 1, 1)],
          'name': u'San Andreas'}
         >>> f.to_dict(serial=True)
-        {'earthquake_dates': ['05-11-1906', '11-02-1948', '01-01-1970'], 'name': u'San Andreas'}
+        {'dates': ['05-11-1906', '11-02-1948', '01-01-1970'], 'name': u'San Andreas'}
         >>> f.to_json()
-        '{"earthquake_dates": ["05-11-1906", "11-02-1948", "01-01-1970"], "name": "San Andreas"}'
+        '{"dates": ["05-11-1906", "11-02-1948", "01-01-1970"], "name": "San Andreas"}'
 
     """
     def __init__(self, field_instance, **kwargs):
