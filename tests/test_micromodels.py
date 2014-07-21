@@ -6,7 +6,6 @@ from schemazoid.micromodels.models import json
 
 # TEST Consistent interface for BaseField (to_python vs to_serial args).
 # TEST BooleanField works like Django's. Strings should not be false.
-# TEST TimeField should return a Time when handed a Datetime.
 # TEST Add validators to BaseField
 # TEST Add required and null validation args to BaseField.
 # TEST Implement NotSet value for BaseField.

@@ -211,6 +211,13 @@ class TimeFieldTestCase(unittest.TestCase):
         expected = time(9, 33, 31)
         self.assertEqual(expected, result)
 
+    def test_handles_datetime(self):
+        field = m.TimeField()
+        field.populate(datetime(2010, 7, 21, 16, 44, 0))
+        result = field.to_python()
+        expected = time(16, 44, 0)
+        self.assertEqual(expected, result)
+
 
 class ModelFieldTestCase(unittest.TestCase):
 

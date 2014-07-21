@@ -157,6 +157,8 @@ class TimeField(DateTimeField):
         # don't parse data that is already native
         if isinstance(self.data, datetime.time):
             return self.data
+        elif isinstance(self.data, datetime.datetime):
+            return self.data.time()
         elif self.format is None:
             # If there are no time delimeters, dateutil misconstrues numbers
             # as the date rather than the time. To ensure it is interpretted
