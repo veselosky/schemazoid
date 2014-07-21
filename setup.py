@@ -37,6 +37,9 @@ setup(
     # could also include download_url, classifiers, etc.
 
     install_requires=[
+        'python-dateutil',
+        'pytz',
+        'six',
     ],
     tests_require=[
         'pytest',

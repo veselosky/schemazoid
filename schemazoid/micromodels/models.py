@@ -2,11 +2,33 @@ try:
     import simplejson as json
 except ImportError:
     import json
+import six
 
 from .fields import BaseField
 
 
+class MetaModel(type):
+    '''Creates the metaclass for Model. The main function of this metaclass
+    is to move all of fields into the _fields variable on the class.
+    '''
+    def __new__(cls, name, bases, attrs):
+        fields = {}
+        for base in bases[::-1]:  # Is this the correct inheritence order?
+            if hasattr(base, '_clsfields'):
+                fields.update(base._clsfields)
+
+        # In py3 items() returns a view rather than a copy, which disallows
+        # mutation inside the loop. So we make an explicit copy.
+        for name, field in attrs.copy().items():
+            if isinstance(field, BaseField):
+                fields[name] = attrs.pop(name)
+
+        attrs['_clsfields'] = fields
+        return super(MetaModel, cls).__new__(cls, name, bases, attrs)
+
+
 # TODO Add model-level validation to support cross-field dependencies.
+@six.add_metaclass(MetaModel)
 class Model(object):
     """The Model is the main component of micromodels. Model makes it trivial
     to parse data from many sources, including JSON APIs.
@@ -30,22 +52,6 @@ class Model(object):
     If the instance doesn't have a field matching the key, then the key and
     value are just set on the instance like any other assignment in Python.
     """
-
-    # FIXME Use six for metaclass syntax compatible with Python 3.
-    class __metaclass__(type):
-        '''Creates the metaclass for Model. The main function of this metaclass
-        is to move all of fields into the _fields variable on the class.
-        '''
-
-        # FIXME Move __init__ to __new__ and inherit fields from base classes.
-        # See https://github.com/zbyte64/micromodels and
-        # https://github.com/jaimegildesagredo/booby for examples.
-        def __init__(cls, name, bases, attrs):
-            cls._clsfields = {}
-            for key, value in attrs.iteritems():
-                if isinstance(value, BaseField):
-                    cls._clsfields[key] = value
-                    delattr(cls, key)
 
     def __init__(self):
         super(Model, self).__setattr__('_extra', {})
@@ -81,7 +87,7 @@ class Model(object):
     def set_data(self, data, is_json=False):
         if is_json:
             data = json.loads(data)
-        for name, field in self._clsfields.iteritems():
+        for name, field in six.iteritems(self._clsfields):
             key = field.source or name
             if key in data:
                 setattr(self, name, data.get(key))

@@ -1,5 +1,8 @@
 import datetime
-import PySO8601
+import six
+
+from dateutil.parser import parse as parse_datetime
+
 
 # * Django fields contain no instance data, only validation.
 # * Django fields contain a reference to their model and their own name within
@@ -52,8 +55,8 @@ class CharField(BaseField):
 
         """
         if self.data is None:
-            return ''
-        return unicode(self.data)
+            return six.u('')
+        return self.data
 
 
 class IntegerField(BaseField):
@@ -91,15 +94,13 @@ class BooleanField(BaseField):
         to ``True``, as will any positive integers.
 
         """
-        if isinstance(self.data, basestring):
+        if isinstance(self.data, six.string_types):
             return self.data.strip().lower() == 'true'
         if isinstance(self.data, int):
             return self.data > 0
         return bool(self.data)
 
 
-# FIXME Eliminate dependency on PySO8601, it is not Python 3 compatible.
-# Recommend Dateutil 2.2.
 class DateTimeField(BaseField):
     """Field to represent a datetime
 
@@ -127,7 +128,7 @@ class DateTimeField(BaseField):
             return self.data
         elif self.format is None:
             # parse as iso8601
-            return PySO8601.parse(self.data)
+            return parse_datetime(self.data)
         else:
             return datetime.datetime.strptime(self.data, self.format)
 
@@ -154,13 +155,15 @@ class TimeField(DateTimeField):
 
     def to_python(self):
         # don't parse data that is already native
-        if isinstance(self.data, datetime.datetime):
-            # FIXME TimeField should return Time not Datetime!
+        if isinstance(self.data, datetime.time):
             return self.data
         elif self.format is None:
-            # parse as iso8601
-            # FIXME Eliminate dependency on PySO8601, not Py3 compatible.
-            return PySO8601.parse_time(self.data).time()
+            # If there are no time delimeters, dateutil misconstrues numbers
+            # as the date rather than the time. To ensure it is interpretted
+            # as a time, place a parseable date in front of it.
+            # See TimeFieldTestCase.test_iso8601_without_delimiters
+            today = datetime.datetime.now().date().isoformat()
+            return parse_datetime(today+' at '+self.data).time()
         else:
             return datetime.datetime.strptime(self.data, self.format).time()
 
