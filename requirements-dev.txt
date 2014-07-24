@@ -7,4 +7,5 @@ pep8
 pyflakes
 pytest
 sphinx
-tox
+# tox 1.7.2 introduced config param for skip_missing_interpreters
+tox >= 1.7.2
