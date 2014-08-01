@@ -67,25 +67,20 @@ class Model(object):
         super(Model, self).__setattr__('_extra', {})
         if kwargs:
             self.set_data(kwargs)
+        elif len(args) == 1 and isinstance(args[0], dict):
+            self.set_data(args[0])
 
-    # FIXME Remove the "is_json" argument from the "from_dict".
-    # JSON is obviously not a dict. Parse it yourself.
     # TODO Add "keymap" argument to "from_dict", a dict mapping the field name
     # to the source key in the provided dict.
     @classmethod
-    def from_dict(cls, D, is_json=False):
+    def from_dict(cls, D):
         '''This constructor for :class:`Model` takes a native Python
         dictionary. Any keys in the dictionary that match the names of fields
         on the model will be set on the instance. Other keys will be ignored.
         '''
-        instance = cls()
-        instance.set_data(D, is_json=is_json)
-        return instance
+        return cls(D)
 
-    # FIXME Remove the "is_json" argument to "set_data".
-    def set_data(self, data, is_json=False):
-        if is_json:
-            data = json.loads(data)
+    def set_data(self, data):
         for name, field in six.iteritems(self._clsfields):
             if name in data:
                 setattr(self, name, data[name])

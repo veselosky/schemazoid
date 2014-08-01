@@ -2,14 +2,11 @@ import unittest
 from datetime import date
 
 from schemazoid import micromodels as m
-from schemazoid.micromodels.models import json
 
 # TEST Add validators to BaseField
 # TEST Add required and null validation args to BaseField.
 # TEST Implement NotSet value for BaseField.
 # TEST Model-level validation.
-# TEST Remove is_json arg from from_dict.
-# TEST Remove is_json arg from set_data.
 # TEST Add keymap arg to from_dict.
 # TODO Sort out the related_name question.
 
@@ -79,33 +76,21 @@ class ModelTestCase(unittest.TestCase):
 
         self.Person = Person
         self.data = {'name': 'Eric', 'age': 18}
-        self.json_data = json.dumps(self.data)
 
     def test_model_creation(self):
-        instance = self.Person.from_dict(self.json_data, is_json=True)
+        instance = self.Person.from_dict(self.data)
         self.assertTrue(isinstance(instance, m.Model))
         self.assertEqual(instance.name, self.data['name'])
         self.assertEqual(instance.age, self.data['age'])
 
-    def test_model_reserialization(self):
-        instance = self.Person.from_dict(self.json_data, is_json=True)
-        self.assertEqual(instance.to_json(), self.json_data)
-        instance.name = 'John'
-        self.assertEqual(json.loads(instance.to_json())['name'],
-                         'John')
-
-    def test_model_type_change_serialization(self):
+    def test_model_date_serialization(self):
         class Event(m.Model):
-            time = m.DateField(format="%Y-%m-%d")
+            when = m.DateField()
 
-        data = {'time': '2000-10-31'}
-        json_data = json.dumps(data)
-
-        instance = Event.from_dict(json_data, is_json=True)
+        data = {'when': '2000-10-31'}
+        instance = Event.from_dict(data)
         output = instance.to_dict(serial=True)
-        self.assertEqual(output['time'], instance.time.isoformat())
-        self.assertEqual(json.loads(instance.to_json())['time'],
-                         instance.time.isoformat())
+        self.assertEqual(output['when'], instance.when.isoformat())
 
     def test_model_add_field(self):
         obj = self.Person.from_dict(self.data)
@@ -127,8 +112,7 @@ class ModelTestCase(unittest.TestCase):
         today = date.today()
         today_str = today.strftime(format)
 
-        instance.add_field('birthday', today_str,
-                           m.DateField(format))
+        instance.add_field('birthday', today_str, m.DateField(format))
         self.assertEqual(instance.to_dict()['birthday'], today)
         instance.birthday = today
         self.assertEqual(instance.to_dict()['birthday'], today)

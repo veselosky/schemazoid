@@ -45,7 +45,7 @@ class CharField(BaseField):
     def to_python(self, data):
         if data is None:
             return six.u('')
-        return data
+        return data + six.u('')  # probably dangerous
 
 
 class IntegerField(BaseField):
@@ -269,53 +269,35 @@ class FieldCollectionField(BaseField):
 
     Here are some examples::
 
-        >>> from schemazoid.micromodels import Model
-        >>> data = {
-        ...     'legal_name': 'John Smith',
-        ...     'aliases': ['Larry', 'Mo', 'Curly']
-        ... }
-
-        >>> class Person(Model):
-        ...     legal_name = CharField()
-        ...     aliases = FieldCollectionField(CharField())
-
-        >>> p = Person(data)
-        >>> p.legal_name
-        u'John Smith'
-        >>> p.aliases
+        >>> from schemazoid import micromodels as m
+        >>> class Thing(m.Model):
+        ...   name = m.CharField()
+        ...   birthday = m.DateField()
+        ...   alternateName = m.FieldCollectionField(m.CharField())
+        ...
+        >>> data = {'name':'Nobody', 'alternateName':['Larry', 'Mo', 'Curly']}
+        >>> thing = Thing(data)
+        >>> thing.name
+        u'Nobody'
+        >>> thing.alternateName
         [u'Larry', u'Mo', u'Curly']
-        >>> p.to_dict()
-        {'legal_name': u'John Smith', 'aliases': [u'Larry', u'Mo', u'Curly']}
-        >>> p.to_dict() == p.to_dict(serial=True)
-        True
+        >>> thing.to_dict()
+        {'alternateName': [u'Larry', u'Mo', u'Curly'], 'name': u'Nobody'}
+        >>> thing.to_dict(serial=True)
+        {'alternateName': [u'Larry', u'Mo', u'Curly'], 'name': u'Nobody'}
 
-    Here is a bit more complicated example involving args and kwargs::
+        >>> class Event(m.Model):
+        ...     dates = m.FieldCollectionField(m.DateField())
+        >>> f = Event(dates=['1999-12-31', '2015-12-31'])
 
-        >>> data = {
-        ...     'name': 'San Andreas',
-        ...     'dates': ['1906-05-11', '1948-11-02', '1970-01-01']
-        ... }
-
-        >>> class FaultLine(Model):
-        ...     name = CharField()
-        ...     dates = FieldCollectionField(
-        ...         DateField('%Y-%m-%d', serial_format='%m-%d-%Y'))
-        >>> f = FaultLine(data)
-
-    Let's check out the resulting :class:`~micromodels.Model` instance with the
-    REPL::
-
-        >>> f.name
-        u'San Andreas'
         >>> f.dates
-        [datetime.date(1906, 5, 11), datetime.date(1948, 11, 2), datetime.date(1970, 1, 1)]
+        [datetime.date(1999, 12, 31), datetime.date(2015, 12, 31)]
+
         >>> f.to_dict()
-        {'dates': [datetime.date(1906, 5, 11), datetime.date(1948, 11, 2), datetime.date(1970, 1, 1)],
-         'name': u'San Andreas'}
+        {'dates': [datetime.date(1999, 12, 31), datetime.date(2015, 12, 31)]}
+
         >>> f.to_dict(serial=True)
-        {'dates': ['05-11-1906', '11-02-1948', '01-01-1970'], 'name': u'San Andreas'}
-        >>> f.to_json()
-        '{"dates": ["05-11-1906", "11-02-1948", "01-01-1970"], "name": "San Andreas"}'
+        {'dates': ['1999-12-31', '2015-12-31']}
 
     """
     def __init__(self, field_instance, **kwargs):
