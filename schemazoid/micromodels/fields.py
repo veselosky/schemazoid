@@ -127,7 +127,7 @@ class DateField(DateTimeField):
 
     def to_python(self, data):
         # don't parse data that is already native
-        if isinstance(data, datetime.date):
+        if isinstance(data, datetime.date) or data is None:
             return data
 
         dt = super(DateField, self).to_python(data)
@@ -143,6 +143,8 @@ class TimeField(DateTimeField):
             return data
         elif isinstance(data, datetime.datetime):
             return data.time()
+        elif data is None:
+            return data
         elif self.format is None:
             # If there are no time delimeters, dateutil misconstrues numbers
             # as the date rather than the time. To ensure it is interpretted

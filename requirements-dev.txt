@@ -6,6 +6,7 @@ flake8
 pep8
 pyflakes
 pytest
+pytest-cov
 sphinx
 # tox 1.7.2 introduced config param for skip_missing_interpreters
 tox >= 1.7.2
