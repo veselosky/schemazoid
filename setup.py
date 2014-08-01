@@ -30,11 +30,9 @@ setup(
     packages=find_packages(),
     author="Vince Veselosky",
     author_email="vince@veselosky.com",
-    description="",
+    description="A lightweight data modeling framework for Python",
     long_description=README,
-    license="MIT",
-    url="",
-    # could also include download_url, classifiers, etc.
+    url="https://github.com/veselosky/schemazoid",
 
     install_requires=[
         'python-dateutil',
@@ -45,4 +43,13 @@ setup(
         'pytest',
     ],
     cmdclass={'test': PyTest},
+
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'License :: OSI Approved :: Apache Software License',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
+    ],
 )

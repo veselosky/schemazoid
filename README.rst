@@ -7,6 +7,13 @@ schemazoid
 Schemazoid is a lightweight data modeling framework for Python, providing base
 implementations of the Schema.org object types.
 
+
+Schemazoid Facts
+-----------------
+:Development Status: Alpha - backwards incompatible changes likely
+:Python Support: 2.6, 2.7, 3.2, 3.3, probably 3.4 but not tested yet
+
+
 Copyright and License
 -------------------------------------------------------------------------------
 Copyright 2014 Vincent Veselosky and contributors.
