@@ -5,13 +5,13 @@ Models
 -------------------
 
 .. autoclass:: schemazoid.micromodels.Model
-    :no-show-inheritance:
+    :members:
 
 Fields
 -------------------
 
 .. autoclass:: schemazoid.micromodels.BaseField
-    :no-show-inheritance:
+    :members:
 
 Basic Fields
 ~~~~~~~~~~~~~~~~~~
@@ -28,9 +28,8 @@ Datetime Fields
 .. autoclass:: schemazoid.micromodels.DateField
 .. autoclass:: schemazoid.micromodels.TimeField
 
-Relationship Fields
-~~~~~~~~~~~~~~~~~~~~
+.. TODO:: Relationship Fields
 
-.. autoclass:: schemazoid.micromodels.ModelField
-.. autoclass:: schemazoid.micromodels.ModelCollectionField
-.. autoclass:: schemazoid.micromodels.FieldCollectionField
+.. TODO:: schemazoid.micromodels.ModelField
+.. TODO:: schemazoid.micromodels.ModelCollectionField
+.. TODO:: schemazoid.micromodels.FieldCollectionField

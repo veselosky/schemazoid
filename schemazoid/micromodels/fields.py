@@ -43,7 +43,6 @@ class CharField(BaseField):
     """Field to represent a simple Unicode string value."""
 
     def to_python(self, data):
-        """Convert the data supplied to a Unicode string."""
         if data is None:
             return six.u('')
         return data
@@ -53,7 +52,6 @@ class IntegerField(BaseField):
     """Field to represent an integer value"""
 
     def to_python(self, data):
-        """Convert the data supplied to an integer."""
         if data is None:
             return 0
         return int(data)
@@ -63,7 +61,6 @@ class FloatField(BaseField):
     """Field to represent a floating point value"""
 
     def to_python(self, data):
-        """Convert the data supplied to a float."""
         if data is None:
             return 0.0
         return float(data)
@@ -102,8 +99,6 @@ class DateTimeField(BaseField):
         self.serial_format = serial_format
 
     def to_python(self, data):
-        '''A :class:`datetime.datetime` object is returned.'''
-
         if data is None:
             return None
 
