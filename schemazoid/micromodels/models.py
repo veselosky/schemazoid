@@ -65,20 +65,10 @@ class Model(object):
         # Since we override __setattr__ to search in _extra, when we set it
         # we call super directly to bypass our implementation.
         super(Model, self).__setattr__('_extra', {})
+        if args:
+            self.set_data(args[0])
         if kwargs:
             self.set_data(kwargs)
-        elif len(args) == 1 and isinstance(args[0], dict):
-            self.set_data(args[0])
-
-    # TODO Add "keymap" argument to "from_dict", a dict mapping the field name
-    # to the source key in the provided dict.
-    @classmethod
-    def from_dict(cls, D):
-        '''This constructor for :class:`Model` takes a native Python
-        dictionary. Any keys in the dictionary that match the names of fields
-        on the model will be set on the instance. Other keys will be ignored.
-        '''
-        return cls(D)
 
     def set_data(self, data):
         for name, field in six.iteritems(self._clsfields):

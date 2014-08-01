@@ -7,7 +7,6 @@ from schemazoid import micromodels as m
 # TEST Add required and null validation args to BaseField.
 # TEST Implement NotSet value for BaseField.
 # TEST Model-level validation.
-# TEST Add keymap arg to from_dict.
 # TODO Sort out the related_name question.
 
 
@@ -33,23 +32,37 @@ class ClassCreationTestCase(unittest.TestCase):
         self.assertTrue(isinstance(self.instance._fields['name'], m.CharField))
 
 
-class ClassCreationFromKwargsTestCase(unittest.TestCase):
+class ModelConstructorTestCase(unittest.TestCase):
 
     def setUp(self):
-        class SimpleModel(m.Model):
+        class Thing(m.Model):
             name = m.CharField()
-            other = m.CharField()
-        self.model_class = SimpleModel
-        self.instance = SimpleModel(name="The name", other="The other")
+            description = m.CharField()
+        self.Thing = Thing
 
-    def test_class_created(self):
-        """Model instance should be of type SimpleModel"""
-        self.assertTrue(isinstance(self.instance, self.model_class))
+    def test_kwargs(self):
+        """Construct by passing keyword arguments"""
+        thing = self.Thing(name="The name", description="The other")
+        self.assertTrue(isinstance(thing, self.Thing))
+        self.assertEqual(thing.name, 'The name')
+        self.assertEqual(thing.description, 'The other')
 
-    def test_fields_set(self):
-        """Model instance should have a property called _fields"""
-        self.assertEqual(self.instance.name, 'The name')
-        self.assertEqual(self.instance.other, 'The other')
+    def test_args(self):
+        """Construct by passing a dictionary"""
+        thing = self.Thing({'name': "The name", 'description': "The other"})
+        self.assertTrue(isinstance(thing, self.Thing))
+        self.assertEqual(thing.name, 'The name')
+        self.assertEqual(thing.description, 'The other')
+
+    def test_args_and_kwargs(self):
+        """Construct by passing a dictionary AND keyword arguments. Keywords
+        should override values in the dictionary.
+        """
+        thing = self.Thing({'name': "The name", 'description': "The other"},
+                           name="A Thing by any other name")
+        self.assertTrue(isinstance(thing, self.Thing))
+        self.assertEqual(thing.name, 'A Thing by any other name')
+        self.assertEqual(thing.description, 'The other')
 
 
 class InstanceTestCase(unittest.TestCase):
@@ -61,7 +74,7 @@ class InstanceTestCase(unittest.TestCase):
             third = m.CharField()
 
         data = {'first': 'firstvalue', 'second': 'secondvalue'}
-        instance = ThreeFieldsModel.from_dict(data)
+        instance = ThreeFieldsModel(data)
 
         self.assertEqual(instance.first, data['first'])
         self.assertEqual(instance.second, data['second'])
@@ -78,7 +91,7 @@ class ModelTestCase(unittest.TestCase):
         self.data = {'name': 'Eric', 'age': 18}
 
     def test_model_creation(self):
-        instance = self.Person.from_dict(self.data)
+        instance = self.Person(self.data)
         self.assertTrue(isinstance(instance, m.Model))
         self.assertEqual(instance.name, self.data['name'])
         self.assertEqual(instance.age, self.data['age'])
@@ -88,18 +101,18 @@ class ModelTestCase(unittest.TestCase):
             when = m.DateField()
 
         data = {'when': '2000-10-31'}
-        instance = Event.from_dict(data)
+        instance = Event(data)
         output = instance.to_dict(serial=True)
         self.assertEqual(output['when'], instance.when.isoformat())
 
     def test_model_add_field(self):
-        obj = self.Person.from_dict(self.data)
+        obj = self.Person(self.data)
         obj.add_field('gender', 'male', m.CharField())
         self.assertEqual(obj.gender, 'male')
         self.assertEqual(obj.to_dict(), dict(self.data, gender='male'))
 
     def test_model_late_assignment(self):
-        instance = self.Person.from_dict(dict(name='Eric'))
+        instance = self.Person(dict(name='Eric'))
         self.assertEqual(instance.to_dict(), dict(name='Eric'))
         instance.age = 18
         self.assertEqual(instance.to_dict(), self.data)
@@ -137,15 +150,15 @@ class InheritenceTestCase(unittest.TestCase):
         self.data = {'name': 'Eric', 'age': 18, 'school': 'no way dude'}
 
     def test_child_inherits_parent_fields(self):
-        child = self.Child.from_dict(self.data)
+        child = self.Child(self.data)
         self.assertEqual(child.name, self.data['name'])
 
     def test_child_overrides_parent_fields(self):
-        child = self.Child.from_dict(self.data)
+        child = self.Child(self.data)
         self.assertEqual(child.age, 18.0)
 
     def test_grandchild_field_mro(self):
-        grandchild = self.Grandchild.from_dict(self.data)
+        grandchild = self.Grandchild(self.data)
         self.assertEqual(grandchild.name, self.data['name'])
         self.assertEqual(grandchild.school, self.data['school'])
         self.assertEqual(grandchild.age, 18.0)
