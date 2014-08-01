@@ -17,14 +17,22 @@ class MetaModel(type):
             if hasattr(base, '_clsfields'):
                 fields.update(base._clsfields)
 
-        # In py3 items() returns a view rather than a copy, which disallows
-        # mutation inside the loop. So we make an explicit copy.
-        for name, field in attrs.copy().items():
-            if isinstance(field, BaseField):
-                fields[name] = attrs.pop(name)
+        # Somehow if you iterate over attrs before creating the class, the
+        # class docstring gets lost. So we create the class first and
+        # manipulate its attrs after.
+        newclass = super(MetaModel, cls).__new__(cls, name, bases, attrs)
 
-        attrs['_clsfields'] = fields
-        return super(MetaModel, cls).__new__(cls, name, bases, attrs)
+        to_remove = []
+        for name in dir(newclass):
+            if isinstance(getattr(newclass, name), BaseField):
+                fields[name] = getattr(newclass, name)
+                to_remove.append(name)
+
+        for name in to_remove:
+            delattr(newclass, name)
+
+        newclass._clsfields = fields
+        return newclass
 
 
 # TODO Add model-level validation to support cross-field dependencies.
