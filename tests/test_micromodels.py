@@ -4,7 +4,6 @@ from datetime import date
 from schemazoid import micromodels as m
 from schemazoid.micromodels.models import json
 
-# TEST Consistent interface for BaseField (to_python vs to_serial args).
 # TEST Add validators to BaseField
 # TEST Add required and null validation args to BaseField.
 # TEST Implement NotSet value for BaseField.

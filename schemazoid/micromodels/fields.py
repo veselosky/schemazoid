@@ -20,19 +20,12 @@ class BaseField(object):
     def __init__(self, *args, **kwargs):
         pass
 
-    # FIXME No instance data on the field, please!
-    def populate(self, data):
-        """Set the value or values wrapped by this field"""
-
-        self.data = data
-
-    # FIXME No instance data on the field, please! Add data arg.
-    def to_python(self):
-        '''After being populated, this method casts the source data into a
+    def to_python(self, data):
+        '''This method casts the source data into a
         Python object. The default behavior is to simply return the source
         value. Subclasses should override this method.
         '''
-        return self.data
+        return data
 
     def to_serial(self, data):
         '''Used to serialize forms back into JSON or other formats.
@@ -49,40 +42,31 @@ class BaseField(object):
 class CharField(BaseField):
     """Field to represent a simple Unicode string value."""
 
-    def to_python(self):
-        """Convert the data supplied using the :meth:`populate` method to a
-        Unicode string.
-
-        """
-        if self.data is None:
+    def to_python(self, data):
+        """Convert the data supplied to a Unicode string."""
+        if data is None:
             return six.u('')
-        return self.data
+        return data
 
 
 class IntegerField(BaseField):
     """Field to represent an integer value"""
 
-    def to_python(self):
-        """Convert the data supplied to the :meth:`populate` method to an
-        integer.
-
-        """
-        if self.data is None:
+    def to_python(self, data):
+        """Convert the data supplied to an integer."""
+        if data is None:
             return 0
-        return int(self.data)
+        return int(data)
 
 
 class FloatField(BaseField):
     """Field to represent a floating point value"""
 
-    def to_python(self):
-        """Convert the data supplied to the :meth:`populate` method to a
-        float.
-
-        """
-        if self.data is None:
+    def to_python(self, data):
+        """Convert the data supplied to a float."""
+        if data is None:
             return 0.0
-        return float(self.data)
+        return float(data)
 
 
 # FIXME Boolean to_python gives unexpected results. Use Django's logic instead.
@@ -93,12 +77,12 @@ class BooleanField(BaseField):
     with one exception: a string containing "false" (case insensitive)
     or "0" will evaluate False."""
 
-    def to_python(self):
-        if isinstance(self.data, six.string_types):
-            norm = self.data.strip().lower()
+    def to_python(self, data):
+        if isinstance(data, six.string_types):
+            norm = data.strip().lower()
             if norm == 'false' or norm == '0':
                 return False
-        return bool(self.data)
+        return bool(data)
 
 
 class DateTimeField(BaseField):
@@ -117,20 +101,20 @@ class DateTimeField(BaseField):
         self.format = format
         self.serial_format = serial_format
 
-    def to_python(self):
+    def to_python(self, data):
         '''A :class:`datetime.datetime` object is returned.'''
 
-        if self.data is None:
+        if data is None:
             return None
 
         # don't parse data that is already native
-        if isinstance(self.data, datetime.datetime):
-            return self.data
+        if isinstance(data, datetime.datetime):
+            return data
         elif self.format is None:
             # parse as iso8601
-            return parse_datetime(self.data)
+            return parse_datetime(data)
         else:
-            return datetime.datetime.strptime(self.data, self.format)
+            return datetime.datetime.strptime(data, self.format)
 
     def to_serial(self, time_obj):
         if not self.serial_format:
@@ -141,33 +125,33 @@ class DateTimeField(BaseField):
 class DateField(DateTimeField):
     """Field to represent a :mod:`datetime.date`"""
 
-    def to_python(self):
+    def to_python(self, data):
         # don't parse data that is already native
-        if isinstance(self.data, datetime.date):
-            return self.data
+        if isinstance(data, datetime.date):
+            return data
 
-        dt = super(DateField, self).to_python()
+        dt = super(DateField, self).to_python(data)
         return dt.date()
 
 
 class TimeField(DateTimeField):
     """Field to represent a :mod:`datetime.time`"""
 
-    def to_python(self):
+    def to_python(self, data):
         # don't parse data that is already native
-        if isinstance(self.data, datetime.time):
-            return self.data
-        elif isinstance(self.data, datetime.datetime):
-            return self.data.time()
+        if isinstance(data, datetime.time):
+            return data
+        elif isinstance(data, datetime.datetime):
+            return data.time()
         elif self.format is None:
             # If there are no time delimeters, dateutil misconstrues numbers
             # as the date rather than the time. To ensure it is interpretted
             # as a time, place a parseable date in front of it.
             # See TimeFieldTestCase.test_iso8601_without_delimiters
             today = datetime.datetime.now().date().isoformat()
-            return parse_datetime(today + ' at ' + self.data).time()
+            return parse_datetime(today + ' at ' + data).time()
         else:
-            return datetime.datetime.strptime(self.data, self.format).time()
+            return datetime.datetime.strptime(data, self.format).time()
 
 
 class WrappedObjectField(BaseField):
@@ -217,11 +201,11 @@ class ModelField(WrappedObjectField):
         u'Some nested value'
 
     """
-    def to_python(self):
-        if isinstance(self.data, self._wrapped_class):
-            obj = self.data
+    def to_python(self, data):
+        if isinstance(data, self._wrapped_class):
+            obj = data
         else:
-            obj = self._wrapped_class.from_dict(self.data or {})
+            obj = self._wrapped_class.from_dict(data or {})
 
         # Set the related object to the related field
         if self._related_name is not None:
@@ -267,9 +251,9 @@ class ModelCollectionField(WrappedObjectField):
         [u'First value', u'Second value', u'Third value']
 
     """
-    def to_python(self):
+    def to_python(self, data):
         object_list = []
-        for item in self.data:
+        for item in data:
             obj = self._wrapped_class.from_dict(item)
             if self._related_name is not None:
                 setattr(obj, self._related_name, self._related_obj)
@@ -341,11 +325,10 @@ class FieldCollectionField(BaseField):
         super(FieldCollectionField, self).__init__(**kwargs)
         self._instance = field_instance
 
-    def to_python(self):
+    def to_python(self, data):
         def convert(item):
-            self._instance.populate(item)
-            return self._instance.to_python()
-        return [convert(item) for item in self.data or []]
+            return self._instance.to_python(item)
+        return [convert(item) for item in data or []]
 
     def to_serial(self, list_of_fields):
         return [self._instance.to_serial(data) for data in list_of_fields]

@@ -85,9 +85,8 @@ class Model(object):
     def __setattr__(self, key, value):
         if key in self._fields:
             field = self._fields[key]
-            field.populate(value)
             field._related_obj = self
-            super(Model, self).__setattr__(key, field.to_python())
+            super(Model, self).__setattr__(key, field.to_python(value))
         else:
             super(Model, self).__setattr__(key, value)
 
