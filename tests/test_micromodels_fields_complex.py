@@ -62,6 +62,26 @@ class ListFieldTestCase(unittest.TestCase):
         self.assertEqual(field.to_serial(self.date_list), expected)
 
 
+class DictFieldTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.dictfield = m.DictField()
+
+    def test_dict_conversion(self):
+        mydict = {1: 'one', 2: 'two'}
+        self.assertEqual(self.dictfield.to_python(mydict), mydict)
+
+    def test_none_conversion(self):
+        self.assertEqual(self.dictfield.to_python(None), {})
+
+    def test_list_conversion(self):
+        self.assertRaises(TypeError, self.dictfield.to_python, ([1, 2, 3, 4]))
+
+    def test_string_conversion(self):
+        self.assertRaises(ValueError, self.dictfield.to_python,
+                          "You can't dict a string!")
+
+
 class ModelFieldTestCase(unittest.TestCase):
 
     def test_model_field_creation(self):

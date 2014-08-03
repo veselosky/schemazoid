@@ -80,6 +80,24 @@ class ListField(BaseField):
         return [self._itemfield.to_serial(item) for item in items]
 
 
+class DictField(BaseField):
+    """DictField only accepts values that are dictionaries.
+
+    Anything that `dict` can't deal with will raise an exception. DictField
+    performs no conversion on the keys or values within the dictionary, which
+    can lead to problems during serialization. Make sure any dictionary you
+    use contains only simple types for its keys and values.
+
+    If your dictionary has complex types that need processing, use a
+    `ModelField` instead.
+    """
+
+    def to_python(self, data):
+        if data is None:
+            return {}
+        return dict(data)
+
+
 class WrappedObjectField(BaseField):
     """Superclass for any fields that wrap an object"""
 
