@@ -3,22 +3,81 @@ from .basic import BaseField
 
 
 class ListField(BaseField):
-    """A ListField holds arrays of any type. Given a non-iterable scalar
+    """A ListField holds arrays of any type.
+
+    Given a non-iterable scalar
     value, it will convert it to a single-item list, unless the value is None,
     in which case it will return an empty list.
+
+    To constrain the type of values allowed in the list, you may pass the
+    'of_type' argument giving a Field instance that will be used to convert
+    and validate the values.
+
+    Here are some examples::
+
+        >>> from schemazoid import micromodels as m
+        >>> class Stooge(m.Model):
+        ...   name = m.CharField()
+        ...   alternateName = m.ListField()
+        ...
+        >>> data = {'name':'Shemp', 'alternateName':['Larry', 'Mo', 'Curly']}
+        >>> stooge = Stooge(data)
+        >>> stooge.name
+        u'Shemp'
+
+        >>> stooge.alternateName
+        ['Larry', 'Mo', 'Curly']
+
+        >>> stooge.to_dict()
+        {'alternateName': ['Larry', 'Mo', 'Curly'], 'name': u'Shemp'}
+
+    Notice in the above Python 2 example, the strings in the ListField are not
+    upgraded to unicode. That's a feature of CharField. Listfield performs no
+    data conversion. If you want items in the list to be converted, then use
+    the of_type argument.
+
+        >>> class Event(m.Model):
+        ...     dates = m.ListField(of_type=m.DateField())
+        >>> f = Event(dates=['1999-12-31', '2015-12-31'])
+
+        >>> f.dates
+        [datetime.date(1999, 12, 31), datetime.date(2015, 12, 31)]
+
+        >>> f.to_dict()
+        {'dates': [datetime.date(1999, 12, 31), datetime.date(2015, 12, 31)]}
+
+        >>> f.to_dict(serial=True)
+        {'dates': ['1999-12-31', '2015-12-31']}
+
+    In the above example, the DateField is used both to convert and to
+    serialize the data items in the list.
     """
+    def __init__(self, of_type=None, **kwargs):
+        super(ListField, self).__init__(**kwargs)
+        self._itemfield = BaseField()
+        if isinstance(of_type, BaseField):
+            self._itemfield = of_type
+
     def to_python(self, data):
         # Dictionaries and strings are both iterable, but should not be
         # treated as arrays for this purpose.
         if isinstance(data, dict):
-            return [data]
+            result = [data]
         elif isinstance(data, six.string_types):
-            return [data]
+            result = [data]
         elif hasattr(data, '__iter__'):
-            return list(data)
+            result = list(data)
         elif data is None:
-            return []
-        return [data]
+            result = []
+        else:
+            result = [data]
+
+        if self._itemfield:
+            return [self._itemfield.to_python(item) for item in result]
+        return result
+
+    def to_serial(self, items):
+        return [self._itemfield.to_serial(item) for item in items]
 
 
 class WrappedObjectField(BaseField):
@@ -130,54 +189,3 @@ class ModelCollectionField(WrappedObjectField):
 
     def to_serial(self, model_instances):
         return [instance.to_dict(serial=True) for instance in model_instances]
-
-
-class FieldCollectionField(BaseField):
-    """Field containing a list of the same type of fields.
-
-    The constructor takes an instance of the field.
-
-    Here are some examples::
-
-        >>> from schemazoid import micromodels as m
-        >>> class Thing(m.Model):
-        ...   name = m.CharField()
-        ...   birthday = m.DateField()
-        ...   alternateName = m.FieldCollectionField(m.CharField())
-        ...
-        >>> data = {'name':'Nobody', 'alternateName':['Larry', 'Mo', 'Curly']}
-        >>> thing = Thing(data)
-        >>> thing.name
-        u'Nobody'
-        >>> thing.alternateName
-        [u'Larry', u'Mo', u'Curly']
-        >>> thing.to_dict()
-        {'alternateName': [u'Larry', u'Mo', u'Curly'], 'name': u'Nobody'}
-        >>> thing.to_dict(serial=True)
-        {'alternateName': [u'Larry', u'Mo', u'Curly'], 'name': u'Nobody'}
-
-        >>> class Event(m.Model):
-        ...     dates = m.FieldCollectionField(m.DateField())
-        >>> f = Event(dates=['1999-12-31', '2015-12-31'])
-
-        >>> f.dates
-        [datetime.date(1999, 12, 31), datetime.date(2015, 12, 31)]
-
-        >>> f.to_dict()
-        {'dates': [datetime.date(1999, 12, 31), datetime.date(2015, 12, 31)]}
-
-        >>> f.to_dict(serial=True)
-        {'dates': ['1999-12-31', '2015-12-31']}
-
-    """
-    def __init__(self, field_instance, **kwargs):
-        super(FieldCollectionField, self).__init__(**kwargs)
-        self._instance = field_instance
-
-    def to_python(self, data):
-        def convert(item):
-            return self._instance.to_python(item)
-        return [convert(item) for item in data or []]
-
-    def to_serial(self, list_of_fields):
-        return [self._instance.to_serial(data) for data in list_of_fields]

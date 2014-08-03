@@ -1,15 +1,17 @@
 import pytest
 import unittest
+from datetime import date
+
 from schemazoid import micromodels as m
 
 
 class ListFieldTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.mixed_list = ['string', 1, 2.1, True]
-        self.integer_list = [1, 2, 3, 4]
+        self.mixed_list = ['string', 1, 2.1, True, None]
+        self.integer_list = [1, 2, 3]
         self.float_list = [1.1, 2.2, 3.3]
-        self.string_list = ['one', 'two', 'three']
+        self.date_list = [date(2014, 1, 1), date(2014, 12, 12)]
         self.listfield = m.ListField()
 
     def test_basic_list(self):
@@ -45,6 +47,19 @@ class ListFieldTestCase(unittest.TestCase):
     def test_none_conversion(self):
         """When handed None, return an empty list."""
         self.assertEqual(self.listfield.to_python(None), [])
+
+    def test_to_serial(self):
+        self.assertEqual(self.listfield.to_serial(self.mixed_list),
+                         self.mixed_list)
+
+    def test_constrained_type_conversion(self):
+        field = m.ListField(of_type=m.IntegerField())
+        self.assertEqual(field.to_python(self.float_list), self.integer_list)
+
+    def test_constrained_type_to_serial(self):
+        field = m.ListField(of_type=m.DateField())
+        expected = ['2014-01-01', '2014-12-12']
+        self.assertEqual(field.to_serial(self.date_list), expected)
 
 
 class ModelFieldTestCase(unittest.TestCase):
@@ -162,33 +177,3 @@ class ModelCollectionFieldTestCase(unittest.TestCase):
             self.assertEqual(post.author, eric)
 
         self.assertEqual(processed, data)
-
-
-class FieldCollectionFieldTestCase(unittest.TestCase):
-
-    def test_field_collection_field_creation(self):
-        class HasAFieldCollectionField(m.Model):
-            first = m.FieldCollectionField(m.CharField())
-
-        data = {'first': ['one', 'two', 'three']}
-        instance = HasAFieldCollectionField(data)
-        self.assertTrue(isinstance(instance.first, list))
-        self.assertTrue(len(data['first']), len(instance.first))
-        for index, value in enumerate(data['first']):
-            self.assertEqual(instance.first[index], value)
-
-    def test_field_collection_field_to_serial(self):
-        class Person(m.Model):
-            aliases = m.FieldCollectionField(m.CharField())
-            events = m.FieldCollectionField(
-                m.DateField('%Y-%m-%d', serial_format='%m-%d-%Y'))
-
-        data = {
-            'aliases': ['Joe', 'John', 'Bob'],
-            'events': ['2011-01-30', '2011-04-01']
-        }
-
-        p = Person(data)
-        serial = p.to_dict(serial=True)
-        self.assertEqual(serial['aliases'], data['aliases'])
-        self.assertEqual(serial['events'][0], '01-30-2011')
