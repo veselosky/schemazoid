@@ -30,6 +30,24 @@ class CharFieldTestCase(unittest.TestCase):
         """CharField should convert None to empty string"""
         self.assertEqual(self.field.to_python(None), '')
 
+    def test_integer_conversion(self):
+        self.assertEqual(self.field.to_python(3), '3')
+
+    def test_float_conversion(self):
+        self.assertEqual(self.field.to_python(3.3), '3.3')
+
+    def test_boolean_conversion(self):
+        self.assertEqual(self.field.to_python(True), 'True')
+        self.assertEqual(self.field.to_python(False), 'False')
+
+    def test_datetime_conversion(self):
+        now = datetime.now()
+        self.assertEqual(self.field.to_python(now), now.isoformat())
+
+    def test_date_conversion(self):
+        today = datetime.now().date()
+        self.assertEqual(self.field.to_python(today), today.isoformat())
+
 
 class IntegerFieldTestCase(unittest.TestCase):
 

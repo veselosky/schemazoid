@@ -45,7 +45,9 @@ class CharField(BaseField):
     def to_python(self, data):
         if data is None:
             return six.u('')
-        return data + six.u('')  # probably dangerous
+        elif hasattr(data, 'isoformat'):
+            return data.isoformat()
+        return str(data) + six.u('')  # probably dangerous
 
 
 class IntegerField(BaseField):
@@ -149,4 +151,3 @@ class TimeField(DateTimeField):
             return parse_datetime(today + ' at ' + data).time()
         else:
             return datetime.datetime.strptime(data, self.format).time()
-
