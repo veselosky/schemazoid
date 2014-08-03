@@ -1,4 +1,24 @@
+import six
 from .basic import BaseField
+
+
+class ListField(BaseField):
+    """A ListField holds arrays of any type. Given a non-iterable scalar
+    value, it will convert it to a single-item list, unless the value is None,
+    in which case it will return an empty list.
+    """
+    def to_python(self, data):
+        # Dictionaries and strings are both iterable, but should not be
+        # treated as arrays for this purpose.
+        if isinstance(data, dict):
+            return [data]
+        elif isinstance(data, six.string_types):
+            return [data]
+        elif hasattr(data, '__iter__'):
+            return list(data)
+        elif data is None:
+            return []
+        return [data]
 
 
 class WrappedObjectField(BaseField):

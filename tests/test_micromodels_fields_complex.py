@@ -3,6 +3,50 @@ import unittest
 from schemazoid import micromodels as m
 
 
+class ListFieldTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.mixed_list = ['string', 1, 2.1, True]
+        self.integer_list = [1, 2, 3, 4]
+        self.float_list = [1.1, 2.2, 3.3]
+        self.string_list = ['one', 'two', 'three']
+        self.listfield = m.ListField()
+
+    def test_basic_list(self):
+        result = self.listfield.to_python(self.mixed_list)
+        self.assertEqual(result, self.mixed_list)
+
+    def test_string_conversion(self):
+        """When handed a string value, return a 1-item list containing it."""
+        result = self.listfield.to_python('string')
+        self.assertEqual(result, ['string'])
+
+    def test_numeric_conversion(self):
+        """When handed a numeric value, return a 1-item list containing it."""
+        result = self.listfield.to_python(1)
+        self.assertEqual(result, [1])
+
+    def test_set_conversion(self):
+        """When handed an iterable non-list, return a list."""
+        result = self.listfield.to_python(set([1, 2, 3]))
+        self.assertEqual(result, [1, 2, 3])
+
+    def test_object_conversion(self):
+        thing = object()
+        result = self.listfield.to_python(thing)
+        self.assertEqual(result, [thing])
+
+    def test_dict_conversion(self):
+        """When handed a dict, treat it as an object."""
+        mydict = {1: 'one', 2: 'two'}
+        result = self.listfield.to_python(mydict)
+        self.assertEqual(result, [mydict])
+
+    def test_none_conversion(self):
+        """When handed None, return an empty list."""
+        self.assertEqual(self.listfield.to_python(None), [])
+
+
 class ModelFieldTestCase(unittest.TestCase):
 
     def test_model_field_creation(self):

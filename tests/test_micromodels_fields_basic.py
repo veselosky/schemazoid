@@ -204,6 +204,10 @@ class DateFieldTestCase(unittest.TestCase):
         expected = date(2010, 12, 28)
         self.assertEqual(expected, result)
 
+    def test_to_serial(self):
+        native = date(2014, 8, 3)
+        self.assertEqual(self.field.to_serial(native), native.isoformat())
+
 
 class TimeFieldTestCase(unittest.TestCase):
 
@@ -239,3 +243,7 @@ class TimeFieldTestCase(unittest.TestCase):
         result = self.field.to_python(datetime(2010, 7, 21, 16, 44, 0))
         expected = time(16, 44, 0)
         self.assertEqual(expected, result)
+
+    def test_to_serial(self):
+        native = time(16, 44, 0)
+        self.assertEqual(self.field.to_serial(native), native.isoformat())
