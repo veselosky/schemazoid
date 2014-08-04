@@ -34,27 +34,36 @@ class MetaModel(type):
 # TODO Add model-level validation to support cross-field dependencies.
 @six.add_metaclass(MetaModel)
 class Model(object):
-    """The Model is the main component of micromodels. Model makes it trivial
-    to parse data from many sources, including JSON APIs.
+    """The `Model` is the key class of the micromodels framework.
+    To begin modeling your data structure, subclass `Model` and add
+    Fields describing its structure. ::
 
-    You will probably want to initialize this class using the class methods
-    :meth:`from_dict` or :meth:`from_kwargs`. If you want to initialize an
-    instance without any data, just call :class:`Model` with no parameters.
+        >>> from schemazoid import micromodels as m
+        >>> class Thing(m.Model):
+        ...   name = m.CharField()
+        ...   description = m.CharField()
 
-    A :class:`Model` uses its field specifications to coerce and validate the
-    values of attributes when they are set. First, the model checks if it has
-    a field with a name matching the key.
+    A Model instance may be constructed as with any Python object. ::
 
-    If there is a matching field, then :meth:`to_python` is called on the field
-    with the value.
+        >>> thing = Thing()
 
-    If :meth:`to_python` does not raise an exception, then the result of
-    :meth:`to_python` is set on the instance, and the method is completed.
+    More useful and typical is to instatiate a model from a dictionary. ::
 
-    If this fails, a ``TypeError`` or ``ValueError`` is raised.
+        >>> data = {'name': 'spoon', 'description': 'There is no spoon.'}
+        >>> thing = Thing(data)
+        >>> thing.name
+        u'spoon'
+        >>> thing.description
+        u'There is no spoon.'
 
-    If the instance doesn't have a field matching the key, then the key and
-    value are just set on the instance like any other assignment in Python.
+        >>> thing.update(name='spork')
+        >>> thing.name
+        u'spork'
+        >>> fork = {'name': 'fork', 'description': "Stick it in me, I'm done."}
+        >>> thing.update(fork)
+        >>> thing.description
+        u"Stick it in me, I'm done."
+
     """
     def __init__(self, *args, **kwargs):
         super(Model, self).__init__()
@@ -62,19 +71,15 @@ class Model(object):
         # we call super directly to bypass our implementation.
         super(Model, self).__setattr__('_extra', {})
         if args:
-            self.set_data(args[0])
+            self.update(args[0])
         if kwargs:
-            self.set_data(kwargs)
+            self.update(kwargs)
 
-    def set_data(self, data):
-        for name, field in six.iteritems(self._clsfields):
-            if name in data:
-                setattr(self, name, data[name])
-
+    # We override __setattr__ so that setting attributes passes through field
+    # conversion/validation functions.
     def __setattr__(self, key, value):
         if key in self._fields:
             field = self._fields[key]
-            field._related_obj = self
             super(Model, self).__setattr__(key, field.to_python(value))
         else:
             super(Model, self).__setattr__(key, value)
@@ -83,24 +88,42 @@ class Model(object):
     def _fields(self):
         return dict(self._clsfields, **self._extra)
 
+    def update(self, *args, **kwargs):
+        """As with the `dict` method of the same name, given a dictionary or
+        keyword arguments, sets the values of the instance attributes
+        corresponding to the key names, overriding any existing value.
+        """
+        data = args[0] if args else {}
+        for name in self._clsfields:
+            if name in data:
+                setattr(self, name, data[name])
+            if name in kwargs:
+                setattr(self, name, kwargs[name])
+
+    # Adds fields to instances so that random attrs can be serialized.
+    # Undocumenting for now, I'm not sure how I want this to work.
+    # -VV 2014-08-04
     def add_field(self, key, value, field):
-        ''':meth:`add_field` must be used to add a field to an existing
-        instance of Model. This method is required so that serialization of the
-        data is possible. Data on existing fields (defined in the class) can be
-        reassigned without using this method.
-        '''
         self._extra[key] = field
         setattr(self, key, value)
 
     def to_dict(self, serial=False):
-        '''Returns a dictionary representing the the data of the instance.
+        """Returns a dictionary representing the data of the instance.
         Native Python objects will still exist in this dictionary (for example,
         a ``datetime`` object will be returned rather than a string)
         unless ``serial`` is set to True.
-        '''
+        """
         if serial:
             return dict((key, self._fields[key].to_serial(getattr(self, key)))
                         for key in self._fields.keys() if hasattr(self, key))
         else:
             return dict((key, getattr(self, key))
                         for key in self._fields.keys() if hasattr(self, key))
+
+    # Fields have to_serial, for symmetry models should have it to.
+    def to_serial(self):
+        """Returns a serializable dictionary representing the data of the
+        instance. It should be safe to hand this dictionary as-is to
+        `json.dumps`.
+        """
+        return self.to_dict(serial=True)

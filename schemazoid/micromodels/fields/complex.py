@@ -104,7 +104,6 @@ class WrappedObjectField(BaseField):
     def __init__(self, wrapped_class, related_name=None, **kwargs):
         self._wrapped_class = wrapped_class
         self._related_name = related_name
-        self._related_obj = None
 
         BaseField.__init__(self, **kwargs)
 
@@ -151,59 +150,7 @@ class ModelField(WrappedObjectField):
         else:
             obj = self._wrapped_class(data or {})
 
-        # Set the related object to the related field
-        if self._related_name is not None:
-            setattr(obj, self._related_name, self._related_obj)
-
         return obj
 
     def to_serial(self, model_instance):
         return model_instance.to_dict(serial=True)
-
-
-class ModelCollectionField(WrappedObjectField):
-    """Field containing a list of model instances.
-
-    Use this field when your source data dictionary contains a list of
-    dictionaries. It takes a single required argument, which is the name of the
-    nested class that each item in the list should be converted to.
-    For example::
-
-        >>> some_data = {
-        ...     'list': [
-        ...         {'value': 'First value'},
-        ...         {'value': 'Second value'},
-        ...         {'value': 'Third value'},
-        ...     ]
-        ... }
-
-        >>> from schemazoid import micromodels
-        >>> class MyNestedModel(micromodels.Model):
-        ...     value = micromodels.CharField()
-
-        >>> class MyMainModel(micromodels.Model):
-        ...     list = micromodels.ModelCollectionField(MyNestedModel)
-
-        >>> m = MyMainModel(some_data)
-        >>> len(m.list)
-        3
-        >>> m.list[0].__class__.__name__
-        'MyNestedModel'
-        >>> m.list[0].value
-        u'First value'
-        >>> [item.value for item in m.list]
-        [u'First value', u'Second value', u'Third value']
-
-    """
-    def to_python(self, data):
-        object_list = []
-        for item in data:
-            obj = self._wrapped_class(item)
-            if self._related_name is not None:
-                setattr(obj, self._related_name, self._related_obj)
-            object_list.append(obj)
-
-        return object_list
-
-    def to_serial(self, model_instances):
-        return [instance.to_dict(serial=True) for instance in model_instances]
