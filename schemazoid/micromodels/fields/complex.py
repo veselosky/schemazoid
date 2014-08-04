@@ -1,8 +1,8 @@
 import six
-from .basic import BaseField
+from .basic import Field
 
 
-class ListField(BaseField):
+class ListField(Field):
     """A ListField holds arrays of any type.
 
     Given a non-iterable scalar
@@ -54,8 +54,8 @@ class ListField(BaseField):
     """
     def __init__(self, of_type=None, **kwargs):
         super(ListField, self).__init__(**kwargs)
-        self._itemfield = BaseField()
-        if isinstance(of_type, BaseField):
+        self._itemfield = Field()
+        if isinstance(of_type, Field):
             self._itemfield = of_type
 
     def to_python(self, data):
@@ -80,7 +80,7 @@ class ListField(BaseField):
         return [self._itemfield.to_serial(item) for item in items]
 
 
-class DictField(BaseField):
+class DictField(Field):
     """DictField only accepts values that are dictionaries.
 
     Anything that `dict` can't deal with will raise an exception. DictField
@@ -98,14 +98,14 @@ class DictField(BaseField):
         return dict(data)
 
 
-class WrappedObjectField(BaseField):
+class WrappedObjectField(Field):
     """Superclass for any fields that wrap an object"""
 
     def __init__(self, wrapped_class, related_name=None, **kwargs):
         self._wrapped_class = wrapped_class
         self._related_name = related_name
 
-        BaseField.__init__(self, **kwargs)
+        Field.__init__(self, **kwargs)
 
 
 class ModelField(WrappedObjectField):

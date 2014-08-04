@@ -10,11 +10,11 @@ from dateutil.parser import parse as parse_datetime
 # * Django fields use a contribute_to_class method to install themselves in a
 #   model and set their model and name attributes.
 
-# TODO Add validators to BaseField to lessen need to sublcass.
+# TODO Add validators to Field to lessen need to sublcass.
 # TODO Add required and null validators as keyword args.
 # TODO Implement a NotSet value to distinguish between a NULL value that
 #      should be serialized and a field that should not be serialized.
-class BaseField(object):
+class Field(object):
     """Base class for all field types.
     """
     def __init__(self, *args, **kwargs):
@@ -31,7 +31,7 @@ class BaseField(object):
         '''Used to serialize forms back into JSON or other formats.
 
         This method is essentially the opposite of
-        :meth:`~micromodels.fields.BaseField.to_python`. A string, boolean,
+        :meth:`~micromodels.fields.Field.to_python`. A string, boolean,
         number, dictionary, list, or tuple must be returned. Subclasses should
         override this method.
 
@@ -39,7 +39,7 @@ class BaseField(object):
         return data
 
 
-class CharField(BaseField):
+class CharField(Field):
     """Field to represent a simple Unicode string value."""
 
     def to_python(self, data):
@@ -50,7 +50,7 @@ class CharField(BaseField):
         return str(data) + six.u('')  # probably dangerous
 
 
-class IntegerField(BaseField):
+class IntegerField(Field):
     """Field to represent an integer value"""
 
     def to_python(self, data):
@@ -59,7 +59,7 @@ class IntegerField(BaseField):
         return int(data)
 
 
-class FloatField(BaseField):
+class FloatField(Field):
     """Field to represent a floating point value"""
 
     def to_python(self, data):
@@ -69,7 +69,7 @@ class FloatField(BaseField):
 
 
 # FIXME Boolean to_python gives unexpected results. Use Django's logic instead.
-class BooleanField(BaseField):
+class BooleanField(Field):
     """Field to represent a boolean.
 
     BooleanField uses Python's boolean rules for non-boolean values,
@@ -84,7 +84,7 @@ class BooleanField(BaseField):
         return bool(data)
 
 
-class DateTimeField(BaseField):
+class DateTimeField(Field):
     """Field to represent a datetime
 
     The ``format`` parameter dictates the format of the input strings, and is

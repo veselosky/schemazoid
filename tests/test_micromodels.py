@@ -3,9 +3,9 @@ from datetime import date
 
 from schemazoid import micromodels as m
 
-# TEST Add validators to BaseField
-# TEST Add required and null validation args to BaseField.
-# TEST Implement NotSet value for BaseField.
+# TEST Add validators to Field
+# TEST Add required and null validation args to Field.
+# TEST Implement NotSet value for Field.
 # TEST Model-level validation.
 # TODO Sort out the related_name question.
 

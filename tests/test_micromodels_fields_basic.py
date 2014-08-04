@@ -6,10 +6,10 @@ from datetime import date, time, datetime
 from schemazoid import micromodels as m
 
 
-class BaseFieldTestCase(unittest.TestCase):
+class FieldTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.field = m.BaseField()
+        self.field = m.Field()
 
     def test_to_python(self):
         self.assertEqual(self.field.to_python('somestring'), 'somestring')

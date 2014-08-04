@@ -10,7 +10,7 @@ Models
 Fields
 -------------------
 
-.. autoclass:: schemazoid.micromodels.BaseField
+.. autoclass:: schemazoid.micromodels.Field
     :members:
 
 Basic Fields

@@ -1,6 +1,6 @@
 import six
 
-from .fields import BaseField
+from .fields import Field
 
 
 class MetaModel(type):
@@ -20,7 +20,7 @@ class MetaModel(type):
 
         to_remove = []
         for name in dir(newclass):
-            if isinstance(getattr(newclass, name), BaseField):
+            if isinstance(getattr(newclass, name), Field):
                 fields[name] = getattr(newclass, name)
                 to_remove.append(name)
 
