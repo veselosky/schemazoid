@@ -1,7 +1,3 @@
-try:
-    import simplejson as json
-except ImportError:
-    import json
 import six
 
 from .fields import BaseField
@@ -108,9 +104,3 @@ class Model(object):
         else:
             return dict((key, getattr(self, key))
                         for key in self._fields.keys() if hasattr(self, key))
-
-    def to_json(self):
-        '''Returns a representation of the model as a JSON string. This method
-        relies on the :meth:`~micromodels.Model.to_dict` method.
-        '''
-        return json.dumps(self.to_dict(serial=True))
