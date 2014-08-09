@@ -119,10 +119,12 @@ class BooleanFieldTestCase(unittest.TestCase):
         self.assertEqual(self.field.to_python(100), True)
 
 
+# TODO Test serial_format
 class DateTimeFieldTestCase(unittest.TestCase):
 
     def setUp(self):
         self.format = "%a %b %d %H:%M:%S +0000 %Y"
+        self.serial_format = "%a %b %d %H:%M:%S +0000 %Y"
         self.datetimestring = "Tue Mar 21 20:50:14 +0000 2006"
         self.format_field = m.DateTimeField(format=self.format)
         self.field = m.DateTimeField()
@@ -171,6 +173,12 @@ class DateTimeFieldTestCase(unittest.TestCase):
         result = self.field.to_serial(native)
 
         self.assertEqual(expected, result)
+
+    def test_serial_format(self):
+        field = m.DateTimeField(serial_format=self.serial_format)
+        when = datetime(2010, 7, 13, 14, 1, 0, tzinfo=pytz.utc)
+        expected = 'Tue Jul 13 14:01:00 +0000 2010'
+        self.assertEqual(field.to_serial(when), expected)
 
 
 class DateFieldTestCase(unittest.TestCase):

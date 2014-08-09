@@ -68,7 +68,6 @@ class FloatField(Field):
         return float(data)
 
 
-# FIXME Boolean to_python gives unexpected results. Use Django's logic instead.
 class BooleanField(Field):
     """Field to represent a boolean.
 
