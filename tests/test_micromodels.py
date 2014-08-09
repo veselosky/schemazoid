@@ -88,6 +88,10 @@ class InheritenceTestCase(unittest.TestCase):
         child = self.Child(self.data)
         self.assertEqual(child.name, self.data['name'])
 
+    def test_non_field_keys_ignored(self):
+        child = self.Child(self.data)
+        self.assertFalse(hasattr(child, 'school'))
+
     def test_child_overrides_parent_fields(self):
         child = self.Child(self.data)
         self.assertEqual(child.age, 18.0)
