@@ -16,21 +16,16 @@ class ClassCreationTestCase(unittest.TestCase):
     def setUp(self):
         class SimpleModel(m.Model):
             name = m.CharField()
-            other = m.CharField()
+
         self.model_class = SimpleModel
         self.instance = SimpleModel()
 
     def test_class_created(self):
-        """Model instance should be of type SimpleModel"""
         self.assertTrue(isinstance(self.instance, self.model_class))
 
-    def test_fields_created(self):
-        # FIXME This is testing an implementation detail, not a public API.
-        self.assertTrue(hasattr(self.instance, '_fields'))
-
     def test_field_collected(self):
-        """Model property should be of correct type"""
-        self.assertTrue(isinstance(self.instance._fields['name'], m.CharField))
+        self.assertTrue(isinstance(self.instance.get_field('name'),
+                        m.CharField))
 
 
 class ModelConstructorTestCase(unittest.TestCase):
@@ -135,7 +130,15 @@ class ModelTestCase(unittest.TestCase):
         self.assertEqual(atom.category, self.data['category'])
         self.assertEqual(atom.author['name'], self.data['author']['name'])
 
-    def test_model_serialization(self):
+    def test_model_to_dict(self):
+        atom = self.Atom(self.data).to_dict()
+        self.assertEqual(atom['title'], self.data['title'])
+        self.assertEqual(atom['id'], 1)
+        self.assertTrue(isinstance(atom['updated'], datetime))
+        self.assertEqual(atom['category'], self.data['category'])
+        self.assertEqual(atom['author']['name'], self.data['author']['name'])
+
+    def test_model_to_serial(self):
         atom = self.Atom(self.data)
         serial = atom.to_serial()
         self.assertEqual(serial['id'], 1)
@@ -155,6 +158,94 @@ class ModelTestCase(unittest.TestCase):
         serial = atom.to_serial()
         self.assertEqual(serial['author'], atom.author)
         self.assertEqual(serial['author']['email'], 'richard@feynman.com')
+
+    def test_update(self):
+        atom = self.Atom(self.data)
+        newdata = {'title': 'New Title', 'summary': 'New Summary'}
+        atom.update(newdata, summary="Summary override")
+        self.assertEqual(atom.title, 'New Title')
+        self.assertEqual(atom.summary, 'Summary override')
+
+
+class ModelClassFieldsTestCase(unittest.TestCase):
+
+    def test_get_class_field(self):
+        class Person1(m.Model):
+            name = m.CharField()
+
+        self.assertTrue(isinstance(Person1.get_class_field('name'),
+                        m.CharField))
+
+    def test_get_class_fields(self):
+        class Person1(m.Model):
+            name = m.CharField()
+
+        fields = Person1.get_class_fields()
+        self.assertEqual(fields['name'], Person1.get_class_field('name'))
+
+    def test_add_class_field(self):
+        class Person2(m.Model):
+            name = m.CharField()
+
+        Person2.add_class_field('birthday', m.DateField())
+        self.assertTrue(isinstance(Person2.get_class_field('birthday'),
+                        m.DateField))
+        self.assertRaises(TypeError, Person2.add_class_field, 'x', 'nofield')
+
+    def test_overwrite_field(self):
+        class Person3(m.Model):
+            name = m.CharField()
+            birthday = m.DateTimeField()
+
+        Person3.add_class_field('birthday', m.DateField())
+        self.assertTrue(isinstance(Person3.get_class_field('birthday'),
+                        m.DateField))
+
+    def test_get_field(self):
+        class Person1(m.Model):
+            name = m.CharField()
+
+        person = Person1()
+        self.assertTrue(isinstance(person.get_field('name'), m.CharField))
+
+    def test_add_field(self):
+        class Person1(m.Model):
+            name = m.CharField()
+
+        person = Person1()
+        person.add_field('birthday', m.DateField())
+        self.assertTrue(isinstance(person.get_field('birthday'), m.DateField))
+        self.assertTrue(person.__class__.get_class_field('birthday') is None)
+
+    def test_add_field_with_bad_value(self):
+        class Person1(m.Model):
+            name = m.CharField()
+
+        person = Person1()
+        person.birthday = '1999-13-42'  # invalid date should raise exception
+
+        self.assertRaises(ValueError, person.add_field, 'birthday',
+                          m.DateField())
+
+    def test_instance_field_overrides_class(self):
+        class Person3(m.Model):
+            name = m.CharField()
+            birthday = m.DateTimeField()
+
+        person = Person3()
+        person.add_field('birthday', m.DateField())
+        self.assertTrue(isinstance(person.get_field('birthday'), m.DateField))
+
+    def test_get_all_fields(self):
+        class Person3(m.Model):
+            name = m.CharField()
+            birthday = m.DateTimeField()
+
+        person = Person3()
+        person.add_field('birthday', m.DateField())
+        fields = person.get_all_fields()
+        self.assertEqual(fields['name'], Person3.get_class_field('name'))
+        self.assertTrue(isinstance(fields['birthday'], m.DateField))
 
 
 if __name__ == "__main__":
