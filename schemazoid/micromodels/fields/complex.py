@@ -98,18 +98,8 @@ class DictField(Field):
         return dict(data)
 
 
-class WrappedObjectField(Field):
-    """Superclass for any fields that wrap an object"""
-
-    def __init__(self, wrapped_class, related_name=None, **kwargs):
-        self._wrapped_class = wrapped_class
-        self._related_name = related_name
-
-        Field.__init__(self, **kwargs)
-
-
-class ModelField(WrappedObjectField):
-    """Field containing a model instance
+class ModelField(Field):
+    """Field containing a model instance.
 
     Use this field when you wish to nest one object inside another.
     It takes a single required argument, which is the nested class.
@@ -144,13 +134,17 @@ class ModelField(WrappedObjectField):
         u'Some nested value'
 
     """
-    def to_python(self, data):
-        if isinstance(data, self._wrapped_class):
-            obj = data
-        else:
-            obj = self._wrapped_class(data or {})
+    def __init__(self, wrapped_class, related_name=None, **kwargs):
+        self._wrapped_class = wrapped_class
+        self._related_name = related_name
 
-        return obj
+        super(ModelField, self).__init__(**kwargs)
+
+    def to_python(self, data):
+        if isinstance(data, self._wrapped_class) or data is None:
+            return data
+        else:
+            return self._wrapped_class(data)
 
     def to_serial(self, model_instance):
-        return model_instance.to_dict(serial=True)
+        return model_instance.to_serial()

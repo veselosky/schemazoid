@@ -101,6 +101,21 @@ class InheritenceTestCase(unittest.TestCase):
 class ModelTestCase(unittest.TestCase):
 
     def setUp(self):
+        class Person(m.Model):
+            name = m.CharField()
+            uri = m.CharField()
+            email = m.CharField()
+
+        class Atom(m.Model):
+            id = m.IntegerField()  # not really, but for testing purposes
+            title = m.CharField()
+            summary = m.CharField()
+            updated = m.DateTimeField()
+            category = m.ListField()
+            author = m.ModelField(Person)
+
+        self.Person = Person
+        self.Atom = Atom
         self.data = {
             'id': '1',
             'title': 'Title',
@@ -111,16 +126,6 @@ class ModelTestCase(unittest.TestCase):
                        'uri': 'http://en.wikipedia.org/wiki/Richard_Feynman'},
         }
 
-        class Atom(m.Model):
-            id = m.IntegerField()  # not really, but for testing purposes
-            title = m.CharField()
-            summary = m.CharField()
-            updated = m.DateTimeField()
-            category = m.ListField()
-            author = m.DictField()
-
-        self.Atom = Atom
-
     def test_model_creation(self):
         atom = self.Atom(self.data)
         self.assertTrue(isinstance(atom, self.Atom))
@@ -128,7 +133,7 @@ class ModelTestCase(unittest.TestCase):
         self.assertEqual(atom.id, 1)
         self.assertTrue(isinstance(atom.updated, datetime))
         self.assertEqual(atom.category, self.data['category'])
-        self.assertEqual(atom.author['name'], self.data['author']['name'])
+        self.assertEqual(atom.author.name, self.data['author']['name'])
 
     def test_model_to_dict(self):
         atom = self.Atom(self.data).to_dict()
@@ -136,15 +141,15 @@ class ModelTestCase(unittest.TestCase):
         self.assertEqual(atom['id'], 1)
         self.assertTrue(isinstance(atom['updated'], datetime))
         self.assertEqual(atom['category'], self.data['category'])
-        self.assertEqual(atom['author']['name'], self.data['author']['name'])
+        self.assertEqual(atom['author'].name, self.data['author']['name'])
 
     def test_model_to_serial(self):
         atom = self.Atom(self.data)
         serial = atom.to_serial()
         self.assertEqual(serial['id'], 1)
         self.assertEqual(serial['updated'], atom.updated.isoformat())
-        self.assertEqual(atom.category, self.data['category'])
-        self.assertEqual(atom.author['name'], self.data['author']['name'])
+        self.assertEqual(serial['category'], self.data['category'])
+        self.assertEqual(serial['author'], self.data['author'])
 
     def test_model_late_assignment(self):
         atom = self.Atom(self.data)
@@ -154,10 +159,18 @@ class ModelTestCase(unittest.TestCase):
         self.assertEqual(atom.updated, datetime(2014, 8, 9, 12, 22, 0, 0, utc))
         atom.category.append('physics')
         self.assertEqual(atom.category, ['blogpost', 'test', 'physics'])
-        atom.author['email'] = 'richard@feynman.com'
+        atom.author.email = 'richard@feynman.com'
         serial = atom.to_serial()
-        self.assertEqual(serial['author'], atom.author)
+        self.assertEqual(serial['author']['name'], self.data['author']['name'])
         self.assertEqual(serial['author']['email'], 'richard@feynman.com')
+
+    def test_model_field_assignment(self):
+        atom = self.Atom(self.data)
+        atom.author = {'name': 'Richard Nixon', 'email': 'dick@whitehouse.gov'}
+        self.assertTrue(isinstance(atom.author, self.Person))
+        self.assertEqual(atom.author.name, 'Richard Nixon')
+        serial = atom.to_serial()
+        self.assertEqual(serial['author']['email'], 'dick@whitehouse.gov')
 
     def test_update(self):
         atom = self.Atom(self.data)
@@ -167,7 +180,7 @@ class ModelTestCase(unittest.TestCase):
         self.assertEqual(atom.summary, 'Summary override')
 
 
-class ModelClassFieldsTestCase(unittest.TestCase):
+class ModelFieldsProtocolTestCase(unittest.TestCase):
 
     def test_get_class_field(self):
         class Person1(m.Model):

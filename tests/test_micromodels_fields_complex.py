@@ -75,40 +75,41 @@ class DictFieldTestCase(unittest.TestCase):
         self.assertEqual(self.dictfield.to_python(None), {})
 
     def test_list_conversion(self):
-        self.assertRaises(TypeError, self.dictfield.to_python, ([1, 2, 3, 4]))
+        self.assertRaises(TypeError, self.dictfield.to_python, [1, 2, 3, 4])
 
     def test_string_conversion(self):
         self.assertRaises(ValueError, self.dictfield.to_python,
                           "You can't dict a string!")
 
 
-@pytest.mark.skipif(True, reason="TODO")
 class ModelFieldTestCase(unittest.TestCase):
 
-    def test_model_field_creation(self):
-        class IsASubModel(m.Model):
-            first = m.CharField()
+    def setUp(self):
+        class Person(m.Model):
+            name = m.CharField()
+            uri = m.CharField()
+            email = m.CharField()
 
-        class HasAModelField(m.Model):
-            first = m.ModelField(IsASubModel)
+        self.Person = Person
+        self.data = {
+            'name': 'Richard P. Feynman',
+            'uri': 'http://en.wikipedia.org/wiki/Richard_Feynman'
+        }
 
-        data = {'first': {'first': 'somevalue'}}
-        instance = HasAModelField(data)
-        self.assertTrue(isinstance(instance.first, IsASubModel))
-        self.assertEqual(instance.first.first, data['first']['first'])
+    def test_model_field_conversion(self):
+        field = m.ModelField(self.Person)
+        person = field.to_python(self.data)
+        self.assertTrue(isinstance(person, self.Person))
+        self.assertEqual(person.name, self.data['name'])
+        self.assertEqual(person.uri, self.data['uri'])
+        self.assertFalse(hasattr(person, 'email'))
 
     def test_model_field_to_serial(self):
-        class User(m.Model):
-            name = m.CharField()
+        field = m.ModelField(self.Person)
+        person = field.to_python(self.data)
+        self.assertEqual(person.to_serial(), self.data)
 
-        class Post(m.Model):
-            title = m.CharField()
-            author = m.ModelField(User)
-
-        data = {'title': 'Test Post', 'author': {'name': 'Eric Martin'}}
-        post = Post(data)
-        self.assertEqual(post.to_dict(serial=True), data)
-
+    @pytest.mark.skipif(True, reason="TODO")
     def test_related_name(self):
         class User(m.Model):
             name = m.CharField()
@@ -122,6 +123,7 @@ class ModelFieldTestCase(unittest.TestCase):
         self.assertEqual(post.author.post, post)
         self.assertEqual(post.to_dict(serial=True), data)
 
+    @pytest.mark.skipif(True, reason="TODO")
     def test_failing_modelfield(self):
         """TODO Test when model in the field fails validation"""
         pass
