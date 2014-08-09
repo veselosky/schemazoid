@@ -1,5 +1,6 @@
 import unittest
-from datetime import date
+from datetime import datetime
+from pytz import utc
 
 from schemazoid import micromodels as m
 
@@ -24,7 +25,7 @@ class ClassCreationTestCase(unittest.TestCase):
         self.assertTrue(isinstance(self.instance, self.model_class))
 
     def test_fields_created(self):
-        """Model instance should have a property called _fields"""
+        # FIXME This is testing an implementation detail, not a public API.
         self.assertTrue(hasattr(self.instance, '_fields'))
 
     def test_field_collected(self):
@@ -65,72 +66,6 @@ class ModelConstructorTestCase(unittest.TestCase):
         self.assertEqual(thing.description, 'The other')
 
 
-class InstanceTestCase(unittest.TestCase):
-
-    def test_basic_data(self):
-        class ThreeFieldsModel(m.Model):
-            first = m.CharField()
-            second = m.CharField()
-            third = m.CharField()
-
-        data = {'first': 'firstvalue', 'second': 'secondvalue'}
-        instance = ThreeFieldsModel(data)
-
-        self.assertEqual(instance.first, data['first'])
-        self.assertEqual(instance.second, data['second'])
-
-
-class ModelTestCase(unittest.TestCase):
-
-    def setUp(self):
-        class Person(m.Model):
-            name = m.CharField()
-            age = m.IntegerField()
-
-        self.Person = Person
-        self.data = {'name': 'Eric', 'age': 18}
-
-    def test_model_creation(self):
-        instance = self.Person(self.data)
-        self.assertTrue(isinstance(instance, m.Model))
-        self.assertEqual(instance.name, self.data['name'])
-        self.assertEqual(instance.age, self.data['age'])
-
-    def test_model_date_serialization(self):
-        class Event(m.Model):
-            when = m.DateField()
-
-        data = {'when': '2000-10-31'}
-        instance = Event(data)
-        output = instance.to_dict(serial=True)
-        self.assertEqual(output['when'], instance.when.isoformat())
-
-    def test_model_add_field(self):
-        obj = self.Person(self.data)
-        obj.add_field('gender', 'male', m.CharField())
-        self.assertEqual(obj.gender, 'male')
-        self.assertEqual(obj.to_dict(), dict(self.data, gender='male'))
-
-    def test_model_late_assignment(self):
-        instance = self.Person(dict(name='Eric'))
-        self.assertEqual(instance.to_dict(), dict(name='Eric'))
-        instance.age = 18
-        self.assertEqual(instance.to_dict(), self.data)
-        instance.name = 'John'
-        self.assertEqual(instance.to_dict(), dict(name='John', age=18))
-        instance.age = '19'
-        self.assertEqual(instance.to_dict(), dict(name='John', age=19))
-
-        format = '%m-%d-%Y'
-        today = date.today()
-        today_str = today.strftime(format)
-
-        instance.add_field('birthday', today_str, m.DateField(format))
-        self.assertEqual(instance.to_dict()['birthday'], today)
-        instance.birthday = today
-        self.assertEqual(instance.to_dict()['birthday'], today)
-
-
 class InheritenceTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -162,6 +97,60 @@ class InheritenceTestCase(unittest.TestCase):
         self.assertEqual(grandchild.name, self.data['name'])
         self.assertEqual(grandchild.school, self.data['school'])
         self.assertEqual(grandchild.age, 18.0)
+
+
+class ModelTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.data = {
+            'id': '1',
+            'title': 'Title',
+            'summary': 'Description of the contents.',
+            'updated': '2014-08-09T12:21:00Z',
+            'category': ['blogpost', 'test'],
+            'author': {'name': 'Richard P. Feynman',
+                       'uri': 'http://en.wikipedia.org/wiki/Richard_Feynman'},
+        }
+
+        class Atom(m.Model):
+            id = m.IntegerField()  # not really, but for testing purposes
+            title = m.CharField()
+            summary = m.CharField()
+            updated = m.DateTimeField()
+            category = m.ListField()
+            author = m.DictField()
+
+        self.Atom = Atom
+
+    def test_model_creation(self):
+        atom = self.Atom(self.data)
+        self.assertTrue(isinstance(atom, self.Atom))
+        self.assertEqual(atom.title, self.data['title'])
+        self.assertEqual(atom.id, 1)
+        self.assertTrue(isinstance(atom.updated, datetime))
+        self.assertEqual(atom.category, self.data['category'])
+        self.assertEqual(atom.author['name'], self.data['author']['name'])
+
+    def test_model_serialization(self):
+        atom = self.Atom(self.data)
+        serial = atom.to_serial()
+        self.assertEqual(serial['id'], 1)
+        self.assertEqual(serial['updated'], atom.updated.isoformat())
+        self.assertEqual(atom.category, self.data['category'])
+        self.assertEqual(atom.author['name'], self.data['author']['name'])
+
+    def test_model_late_assignment(self):
+        atom = self.Atom(self.data)
+        atom.id = '2'
+        self.assertEqual(atom.id, 2)
+        atom.updated = '2014-08-09T12:22:00Z'
+        self.assertEqual(atom.updated, datetime(2014, 8, 9, 12, 22, 0, 0, utc))
+        atom.category.append('physics')
+        self.assertEqual(atom.category, ['blogpost', 'test', 'physics'])
+        atom.author['email'] = 'richard@feynman.com'
+        serial = atom.to_serial()
+        self.assertEqual(serial['author'], atom.author)
+        self.assertEqual(serial['author']['email'], 'richard@feynman.com')
 
 
 if __name__ == "__main__":

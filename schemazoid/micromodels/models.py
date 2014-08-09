@@ -108,22 +108,31 @@ class Model(object):
         setattr(self, key, value)
 
     def to_dict(self, serial=False):
-        """Returns a dictionary representing the data of the instance.
-        Native Python objects will still exist in this dictionary (for example,
-        a ``datetime`` object will be returned rather than a string)
-        unless ``serial`` is set to True.
+        """Returns a dictionary representing the data of the instance,
+        containing native Python objects which might not be serializable
+        (for example, :class:`datetime` objects). To obtain a serializable
+        dictionary, call the :meth:`to_serial` method instead, or pass
+        the `serial` argument with a True value.
+
+        Note that only attributes declared as Fields will be included in the
+        dictionary. Although you may set other attributes on the instance,
+        those additional attributes will not be returned by :meth:`to_dict`.
         """
         if serial:
             return dict((key, self._fields[key].to_serial(getattr(self, key)))
-                        for key in self._fields.keys() if hasattr(self, key))
+                        for key in self._fields if hasattr(self, key))
         else:
             return dict((key, getattr(self, key))
-                        for key in self._fields.keys() if hasattr(self, key))
+                        for key in self._fields if hasattr(self, key))
 
     # Fields have to_serial, for symmetry models should have it to.
     def to_serial(self):
         """Returns a serializable dictionary representing the data of the
         instance. It should be safe to hand this dictionary as-is to
         `json.dumps`.
+
+        Note that only attributes declared as Fields will be included in the
+        dictionary. Although you may set other attributes on the instance,
+        those additional attributes will not be returned by :meth:`to_serial`.
         """
         return self.to_dict(serial=True)
