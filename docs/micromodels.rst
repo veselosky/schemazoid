@@ -1,5 +1,12 @@
-API
+Micromodels
 ===================
+
+A :class:`~schemazoid.micromodels.Model` uses its field specifications to define
+its structure and validation rules. When you set a value for an attribute defined
+as a :class:`~schemazoid.micromodels.Field`, the value passes through the Field's
+conversion function before being set on the model. The value will be coerced to
+the proper type if possible. If the value cannot be coerced, the Field will
+raise a ``TypeError`` or ``ValueError``.
 
 Models
 -------------------
@@ -33,5 +40,4 @@ Complex Fields
 
 .. autoclass:: schemazoid.micromodels.ListField
 .. autoclass:: schemazoid.micromodels.DictField
-
 .. autoclass:: schemazoid.micromodels.ModelField
