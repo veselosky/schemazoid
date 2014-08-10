@@ -1,5 +1,47 @@
 import six
+from collections import MutableSequence
 from .basic import Field
+
+
+class TypedList(MutableSequence):
+    def __init__(self, field, *args):
+        super(TypedList, self).__init__()
+        self._field = field
+        self._list = [self._field.to_python(item) for item in list(*args)]
+
+    def __getitem__(self, index):
+        return self._list[index]
+
+    def __setitem__(self, index, value):
+        self._list[index] = self._field.to_python(value)
+
+    def __delitem__(self, index):
+        del self._list[index]
+
+    def __len__(self):
+        return len(self._list)
+
+    def insert(self, index, value):
+        self._list.insert(index, self._field.to_python(value))
+
+    # not abstract, but comparisons fail if not done
+    def __eq__(self, *args):
+        return self._list.__eq__(*args)
+
+    def __ne__(self, *args):
+        return self._list.__ne__(*args)
+
+    def __le__(self, *args):
+        return self._list.__le__(*args)
+
+    def __ge__(self, *args):
+        return self._list.__ge__(*args)
+
+    def __lt__(self, *args):
+        return self._list.__lt__(*args)
+
+    def __gt__(self, *args):
+        return self._list.__gt__(*args)
 
 
 class ListField(Field):
@@ -73,7 +115,7 @@ class ListField(Field):
             result = [data]
 
         if self._itemfield:
-            return [self._itemfield.to_python(item) for item in result]
+            return TypedList(self._itemfield, result)
         return result
 
     def to_serial(self, items):

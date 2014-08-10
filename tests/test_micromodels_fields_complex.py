@@ -61,6 +61,13 @@ class ListFieldTestCase(unittest.TestCase):
         expected = ['2014-01-01', '2014-12-12']
         self.assertEqual(field.to_serial(self.date_list), expected)
 
+    def test_constrained_type_mutability(self):
+        field = m.ListField(of_type=m.DateField())
+        result = field.to_python(['2014-01-01', '2014-12-12'])
+        result.append('2014-06-06')
+        expected = [date(2014, 1, 1), date(2014, 12, 12), date(2014, 6, 6)]
+        self.assertEqual(result, expected)
+
 
 class DictFieldTestCase(unittest.TestCase):
 
