@@ -21,21 +21,21 @@ class Field(object):
         pass
 
     def to_python(self, data):
-        '''This method casts the source data into a
-        Python object. The default behavior is to simply return the source
-        value. Subclasses should override this method.
-        '''
+        """Casts the source data into a Python object.
+
+        The default behavior is to simply return the source
+        data unchanged. Subclasses should override this method.
+        """
         return data
 
     def to_serial(self, data):
-        '''Used to serialize forms back into JSON or other formats.
+        """Used to serialize forms back into JSON or other formats.
 
         This method is essentially the opposite of
-        :meth:`~micromodels.fields.Field.to_python`. A string, boolean,
+        :meth:`~schemazoid.micromodels.Field.to_python`. A string, boolean,
         number, dictionary, list, or tuple must be returned. Subclasses should
         override this method.
-
-        '''
+        """
         return data
 
 
@@ -87,11 +87,11 @@ class DateTimeField(Field):
     """Field to represent a datetime
 
     The ``format`` parameter dictates the format of the input strings, and is
-    used in the construction of the :class:`datetime.datetime` object.
+    used in the construction of the :class:`~datetime.datetime` object.
 
     The ``serial_format`` parameter is a strftime formatted string for
     serialization. If ``serial_format`` isn't specified, an ISO formatted
-    string will be returned by :meth:`~micromodels.DateTimeField.to_serial`.
+    string will be returned.
 
     """
     def __init__(self, format=None, serial_format=None, **kwargs):
@@ -119,7 +119,7 @@ class DateTimeField(Field):
 
 
 class DateField(DateTimeField):
-    """Field to represent a :mod:`datetime.date`"""
+    """Field to represent a :class:`datetime.date`"""
 
     def to_python(self, data):
         # don't parse data that is already native
@@ -131,7 +131,7 @@ class DateField(DateTimeField):
 
 
 class TimeField(DateTimeField):
-    """Field to represent a :mod:`datetime.time`"""
+    """Field to represent a :class:`datetime.time`"""
 
     def to_python(self, data):
         # don't parse data that is already native

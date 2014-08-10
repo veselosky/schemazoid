@@ -4,9 +4,11 @@ from .fields import Field
 
 
 class MetaModel(type):
-    '''Creates the metaclass for Model. The main function of this metaclass
-    is to move all of fields into the _clsfields variable on the class.
-    '''
+    """The metaclass for :class:`~schemazoid.micromodels.Model`.
+
+    The main function of this metaclass
+    is to move all of fields into the ``_clsfields`` variable on the class.
+    """
     def __new__(cls, name, bases, attrs):
         fields = {}
         for base in bases[::-1]:
@@ -34,8 +36,8 @@ class MetaModel(type):
 # TODO Add model-level validation to support cross-field dependencies.
 @six.add_metaclass(MetaModel)
 class Model(object):
-    """The `Model` is the key class of the micromodels framework.
-    To begin modeling your data structure, subclass `Model` and add
+    """The ``Model`` is the key class of the micromodels framework.
+    To begin modeling your data structure, subclass ``Model`` and add
     Fields describing its structure. ::
 
         >>> from schemazoid import micromodels as m
@@ -123,9 +125,10 @@ class Model(object):
         return dict(self.__class__.get_class_fields(), **self._instance_fields)
 
     def update(self, *args, **kwargs):
-        """As with the `dict` method of the same name, given a dictionary or
-        keyword arguments, sets the values of the instance attributes
-        corresponding to the key names, overriding any existing value.
+        """As with the :class:`dict` method of the same name, given a
+        dictionary or keyword arguments, sets the values of the instance
+        attributes corresponding to the key names, overriding any existing
+        value.
         """
         data = args[0] if args else {}
         for name in self.get_all_fields():
@@ -148,13 +151,14 @@ class Model(object):
     def to_dict(self, serial=False):
         """Returns a dictionary representing the data of the instance,
         containing native Python objects which might not be serializable
-        (for example, :class:`datetime` objects). To obtain a serializable
-        dictionary, call the :meth:`to_serial` method instead, or pass
-        the `serial` argument with a True value.
+        (for example, :class:`~datetime.datetime` objects). To obtain a
+        serializable dictionary, call the
+        :meth:`~schemazoid.micromodels.Model.to_serial` method instead,
+        or pass the ``serial`` argument with a True value.
 
         Note that only attributes declared as Fields will be included in the
         dictionary. Although you may set other attributes on the instance,
-        those additional attributes will not be returned by :meth:`to_dict`.
+        those additional attributes will not be returned.
         """
         if serial:
             return dict(
@@ -168,10 +172,10 @@ class Model(object):
     def to_serial(self):
         """Returns a serializable dictionary representing the data of the
         instance. It should be safe to hand this dictionary as-is to
-        `json.dumps`.
+        :func:`json.dumps`.
 
         Note that only attributes declared as Fields will be included in the
         dictionary. Although you may set other attributes on the instance,
-        those additional attributes will not be returned by :meth:`to_serial`.
+        those additional attributes will not be returned.
         """
         return self.to_dict(serial=True)

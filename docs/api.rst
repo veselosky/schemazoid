@@ -34,6 +34,4 @@ Complex Fields
 .. autoclass:: schemazoid.micromodels.ListField
 .. autoclass:: schemazoid.micromodels.DictField
 
-.. TODO:: schemazoid.micromodels.ModelField
-.. TODO:: schemazoid.micromodels.ModelCollectionField
-.. TODO:: schemazoid.micromodels.FieldCollectionField
+.. autoclass:: schemazoid.micromodels.ModelField

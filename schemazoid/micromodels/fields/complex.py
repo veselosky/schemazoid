@@ -58,8 +58,8 @@ class ListField(Field):
     in which case it will return an empty list.
 
     To constrain the type of values allowed in the list, you may pass the
-    'of_type' argument giving a Field instance that will be used to convert
-    and validate the values.
+    ``of_type`` argument giving a :class:`~schemazoid.micromodels.Field`
+    instance that will be used to convert and validate the values.
 
     Here are some examples::
 
@@ -79,18 +79,15 @@ class ListField(Field):
     Notice in the above Python 2 example, the strings in the ListField are not
     upgraded to unicode. That's a feature of CharField. Listfield performs no
     data conversion. If you want items in the list to be converted, then use
-    the of_type argument.
+    the ``of_type`` argument.
 
         >>> class Event(m.Model):
         ...     dates = m.ListField(of_type=m.DateField())
         >>> f = Event(dates=['1999-12-31', '2015-12-31'])
-
         >>> f.dates
         [datetime.date(1999, 12, 31), datetime.date(2015, 12, 31)]
-
         >>> f.to_dict()
         {'dates': [datetime.date(1999, 12, 31), datetime.date(2015, 12, 31)]}
-
         >>> f.to_dict(serial=True)
         {'dates': ['1999-12-31', '2015-12-31']}
 
@@ -134,7 +131,7 @@ class DictField(Field):
     use contains only simple types for its keys and values.
 
     If your dictionary has complex types that need processing, use a
-    `ModelField` instead.
+    :class:`~schemazoid.micromodels.ModelField` instead.
     """
 
     def to_python(self, data):
@@ -179,10 +176,8 @@ class ModelField(Field):
         u'Some nested value'
 
     """
-    def __init__(self, wrapped_class, related_name=None, **kwargs):
+    def __init__(self, wrapped_class, **kwargs):
         self._wrapped_class = wrapped_class
-        self._related_name = related_name
-
         super(ModelField, self).__init__(**kwargs)
 
     def to_python(self, data):
