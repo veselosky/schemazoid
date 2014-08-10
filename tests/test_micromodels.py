@@ -8,7 +8,6 @@ from schemazoid import micromodels as m
 # TEST Add required and null validation args to Field.
 # TEST Implement NotSet value for Field.
 # TEST Model-level validation.
-# TODO Sort out the related_name question.
 
 
 class ClassCreationTestCase(unittest.TestCase):

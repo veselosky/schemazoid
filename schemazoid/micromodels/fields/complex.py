@@ -43,6 +43,12 @@ class TypedList(MutableSequence):
     def __gt__(self, *args):
         return self._list.__gt__(*args)
 
+    def __repr__(self, *args):
+        return self._list.__repr__(*args)
+
+    def __str__(self, *args):
+        return self._list.__str__(*args)
+
 
 class ListField(Field):
     """A ListField holds arrays of any type.
@@ -69,9 +75,6 @@ class ListField(Field):
 
         >>> stooge.alternateName
         ['Larry', 'Mo', 'Curly']
-
-        >>> stooge.to_dict()
-        {'alternateName': ['Larry', 'Mo', 'Curly'], 'name': u'Shemp'}
 
     Notice in the above Python 2 example, the strings in the ListField are not
     upgraded to unicode. That's a feature of CharField. Listfield performs no
