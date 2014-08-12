@@ -9,12 +9,18 @@ simplify the process of modeling data structures, such as dictionaries from a
 JSON API, into full Python objects. It also assists with the reverse
 transformation, converting Python objects to a JSON-serializable dictionary.
 
+The schemazoid Things framework uses the micromodels framework to create Python
+models of objects described by the Schema.org_ vocabulary.
+
+.. _Schema.org: https://schema.org
+
 Contents:
 
 .. toctree::
    :maxdepth: 2
 
    Micromodels Framework <micromodels>
+   Things Framework <things>
 
 Indices and tables
 ==================
